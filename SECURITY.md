@@ -1,5 +1,18 @@
 # Security Advisory
 
+## ⚠️ Quick Summary
+
+**Three (3) known vulnerabilities** affect Angular 15.2.10:
+1. **XSS via SVG Script Attributes** (High) - No patch for Angular 15
+2. **Stored XSS via SVG Animation** (High) - No patch for Angular 15  
+3. **XSRF Token Leakage** (Medium) - No patch for Angular 15
+
+**Recommendation**: Upgrade to **Angular 19.2.18+** before production deployment.
+
+**Current Mitigations**: ✅ Implemented (see below)
+
+---
+
 ## Current Security Status
 
 ### ⚠️ Known Vulnerabilities in Angular 15.2.10
@@ -23,8 +36,12 @@ This project currently uses **Angular 15.2.10**, which has known security vulner
 - **Status**: ⚠️ **NO PATCH AVAILABLE FOR ANGULAR 15**
 
 #### 3. XSRF Token Leakage via Protocol-Relative URLs
-- **Affected Versions**: Angular 19+, 20+, 21+ (specific ranges)
-- **Status**: ✅ **DOES NOT AFFECT ANGULAR 15.2.10**
+- **Affected Versions**: Angular < 19.2.16 (includes 15.2.10)
+- **Severity**: Medium
+- **Impact**: XSRF/CSRF tokens may leak when using protocol-relative URLs in HTTP client
+- **Patched Version**: Angular 19.2.16+, 20.3.14+, or 21.0.1+
+- **Status**: ⚠️ **NO PATCH AVAILABLE FOR ANGULAR 15**
+- **Mitigation**: Avoid protocol-relative URLs (e.g., `//example.com`), use absolute URLs with protocol
 
 ### Why Angular 15?
 
@@ -77,7 +94,24 @@ export class InputValidationService {
 }
 ```
 
-#### 4. Avoid Dynamic Content Rendering
+#### 4. Avoid Protocol-Relative URLs (XSRF Mitigation)
+```typescript
+// ❌ AVOID: Protocol-relative URLs
+const apiUrl = '//api.example.com/data';
+
+// ✅ BETTER: Use absolute URLs with explicit protocol
+const apiUrl = 'https://api.example.com/data';
+
+// In environment files
+export const environment = {
+  production: true,
+  apiUrl: 'https://flyseats-api.azurewebsites.net/api' // Full URL with protocol
+};
+```
+
+**Why this matters**: Protocol-relative URLs can cause XSRF tokens to be leaked in Angular's HTTP client. Always use full URLs with explicit `https://` or `http://` protocols.
+
+#### 5. Avoid Dynamic Content Rendering
 - Do not use `[innerHTML]` with untrusted content
 - Do not render user-provided SVG
 - Sanitize all user inputs
@@ -189,7 +223,9 @@ sanitizeHtml(html: string) {
 |--------------|------|------------|---------|
 | SVG XSS | Medium | Avoid untrusted SVG | ✅ Implemented |
 | Stored XSS | Medium | Input validation | ✅ Implemented |
-| XSRF Token | Low | Not applicable | ✅ N/A |
+| XSRF Token Leakage | Medium | Use absolute URLs | ✅ Implemented |
+
+**Note**: All API URLs in this project use explicit protocols (`http://` or `https://`), not protocol-relative URLs, which mitigates the XSRF token leakage vulnerability.
 
 ## Incident Response Plan
 
@@ -236,9 +272,10 @@ export class SecurityLogger {
 
 ### For Production Deployment
 ⚠️ **NOT RECOMMENDED** - upgrade required
-- **Action Required**: Upgrade to Angular 19.2.18+ or later
+- **Action Required**: Upgrade to Angular 19.2.18+ or later (fixes all 3 vulnerabilities)
 - **Timeline**: Before production deployment
 - **Priority**: HIGH
+- **Minimum Safe Version**: Angular 19.2.18 (patches all known CVEs)
 
 ## Version Upgrade Roadmap
 
