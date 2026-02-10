@@ -3,6 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Observable, BehaviorSubject } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { CacheService } from './cache.service';
+import { environment } from '../../../environments/environment';
 
 export interface User {
   id: string;
@@ -16,6 +17,7 @@ export interface User {
 })
 export class AuthService {
   private readonly AUTH_KEY = 'auth_user';
+  private readonly API_URL = `${environment.apiUrl}/auth`;
   private currentUserSubject = new BehaviorSubject<User | null>(null);
   public currentUser$ = this.currentUserSubject.asObservable();
 
@@ -34,8 +36,7 @@ export class AuthService {
   }
 
   login(email: string, password: string): Observable<User> {
-    // TODO: Replace with actual API endpoint
-    return this.http.post<User>('/api/auth/login', { email, password }).pipe(
+    return this.http.post<User>(`${this.API_URL}/login`, { email, password }).pipe(
       tap(user => {
         this.cacheService.set(this.AUTH_KEY, user);
         this.currentUserSubject.next(user);

@@ -3,6 +3,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { CacheService } from './cache.service';
+import { environment } from '../../../environments/environment';
 
 export interface Flight {
   id: string;
@@ -28,7 +29,7 @@ export interface FlightSearchParams {
   providedIn: 'root'
 })
 export class FlightService {
-  private readonly API_URL = '/api/flights';
+  private readonly API_URL = `${environment.apiUrl}/flights`;
   private readonly CACHE_KEY_PREFIX = 'flights_';
 
   constructor(

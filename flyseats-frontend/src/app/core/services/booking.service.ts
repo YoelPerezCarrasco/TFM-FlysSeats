@@ -3,6 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { CacheService } from './cache.service';
+import { environment } from '../../../environments/environment';
 
 export interface Booking {
   id: string;
@@ -19,7 +20,7 @@ export interface Booking {
   providedIn: 'root'
 })
 export class BookingService {
-  private readonly API_URL = '/api/bookings';
+  private readonly API_URL = `${environment.apiUrl}/bookings`;
   private readonly CACHE_KEY = 'user_bookings';
 
   constructor(
