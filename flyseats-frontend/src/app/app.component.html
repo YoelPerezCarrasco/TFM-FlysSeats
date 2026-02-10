@@ -1,0 +1,44 @@
+<mat-toolbar color="primary">
+  <button mat-icon-button [matMenuTriggerFor]="menu" aria-label="Menu">
+    <mat-icon>menu</mat-icon>
+  </button>
+  <span>{{ 'app.title' | translate }}</span>
+  <span class="spacer"></span>
+  
+  <button mat-button [matMenuTriggerFor]="langMenu">
+    <mat-icon>language</mat-icon>
+  </button>
+  
+  <button mat-button routerLink="/flights">{{ 'menu.flights' | translate }}</button>
+  <button mat-button routerLink="/bookings" *ngIf="currentUser$ | async">{{ 'menu.bookings' | translate }}</button>
+  <button mat-button routerLink="/auth/login" *ngIf="!(currentUser$ | async)">{{ 'menu.login' | translate }}</button>
+  <button mat-button (click)="logout()" *ngIf="currentUser$ | async">{{ 'menu.logout' | translate }}</button>
+</mat-toolbar>
+
+<mat-menu #menu="matMenu">
+  <button mat-menu-item routerLink="/flights">
+    <mat-icon>flight</mat-icon>
+    <span>{{ 'menu.flights' | translate }}</span>
+  </button>
+  <button mat-menu-item routerLink="/bookings" *ngIf="currentUser$ | async">
+    <mat-icon>book</mat-icon>
+    <span>{{ 'menu.bookings' | translate }}</span>
+  </button>
+  <button mat-menu-item routerLink="/auth/login" *ngIf="!(currentUser$ | async)">
+    <mat-icon>login</mat-icon>
+    <span>{{ 'menu.login' | translate }}</span>
+  </button>
+  <button mat-menu-item (click)="logout()" *ngIf="currentUser$ | async">
+    <mat-icon>logout</mat-icon>
+    <span>{{ 'menu.logout' | translate }}</span>
+  </button>
+</mat-menu>
+
+<mat-menu #langMenu="matMenu">
+  <button mat-menu-item (click)="switchLanguage('en')">English</button>
+  <button mat-menu-item (click)="switchLanguage('es')">Español</button>
+</mat-menu>
+
+<div class="content">
+  <router-outlet></router-outlet>
+</div>

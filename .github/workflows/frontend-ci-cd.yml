@@ -1,0 +1,65 @@
+name: CI/CD Pipeline - Frontend
+
+on:
+  push:
+    branches: [ main, develop ]
+    paths:
+      - 'flyseats-frontend/**'
+  pull_request:
+    branches: [ main, develop ]
+    paths:
+      - 'flyseats-frontend/**'
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18'
+        cache: 'npm'
+        cache-dependency-path: flyseats-frontend/package-lock.json
+    
+    - name: Install dependencies
+      working-directory: ./flyseats-frontend
+      run: npm ci
+    
+    - name: Build Angular app
+      working-directory: ./flyseats-frontend
+      run: npm run build -- --configuration production
+    
+    - name: Run tests
+      working-directory: ./flyseats-frontend
+      run: npm run test -- --watch=false --browsers=ChromeHeadless
+    
+    - name: Archive build artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: frontend-dist
+        path: flyseats-frontend/dist/
+        retention-days: 7
+
+  deploy:
+    needs: build-and-test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Download build artifacts
+      uses: actions/download-artifact@v3
+      with:
+        name: frontend-dist
+        path: dist
+    
+    - name: Deploy to Azure Web App
+      uses: azure/webapps-deploy@v2
+      with:
+        app-name: ${{ secrets.AZURE_WEBAPP_NAME }}
+        publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
+        package: dist
