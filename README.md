@@ -2,6 +2,14 @@
 
 A modern, full-stack flight booking application built with Angular 15+, Python Azure Functions, and deployed on Azure infrastructure.
 
+## ⚠️ Security Notice
+
+**Important**: This project uses Angular 15.2.10, which has known security vulnerabilities (XSS via SVG attributes) that will not receive patches. 
+
+**For production use**, upgrade to Angular 19.2.18+ or later. See [SECURITY.md](SECURITY.md) for detailed information and mitigation strategies.
+
+**Current Status**: Suitable for development/learning purposes with implemented mitigations. Not recommended for production without upgrading Angular.
+
 ## 🚀 Technology Stack
 
 ### Frontend
@@ -208,7 +216,16 @@ The application supports multiple languages via ngx-translate:
 
 Translation files: `flyseats-frontend/src/assets/i18n/*.json`
 
-## 🔐 Security Features
+## 🔐 Security
+
+### Known Vulnerabilities
+This project uses Angular 15.2.10 which has known XSS vulnerabilities. See [SECURITY.md](SECURITY.md) for:
+- Detailed vulnerability information
+- Mitigation strategies
+- Upgrade recommendations
+- Security best practices
+
+### Implemented Security Features
 
 - HTTP Interceptor for JWT token management
 - Route guards for protected pages
