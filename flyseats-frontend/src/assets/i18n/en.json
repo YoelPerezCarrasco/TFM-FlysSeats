@@ -1,0 +1,38 @@
+{
+  "app": {
+    "title": "FlysSeats",
+    "welcome": "Welcome to FlysSeats",
+    "description": "Book your flights easily"
+  },
+  "menu": {
+    "home": "Home",
+    "flights": "Flights",
+    "bookings": "My Bookings",
+    "login": "Login",
+    "logout": "Logout"
+  },
+  "auth": {
+    "login": "Login",
+    "email": "Email",
+    "password": "Password",
+    "loginButton": "Sign In",
+    "forgotPassword": "Forgot Password?"
+  },
+  "flights": {
+    "search": "Search Flights",
+    "from": "From",
+    "to": "To",
+    "departure": "Departure Date",
+    "return": "Return Date",
+    "passengers": "Passengers",
+    "searchButton": "Search",
+    "results": "Flight Results",
+    "book": "Book Now"
+  },
+  "bookings": {
+    "title": "My Bookings",
+    "bookingNumber": "Booking Number",
+    "status": "Status",
+    "viewDetails": "View Details"
+  }
+}
