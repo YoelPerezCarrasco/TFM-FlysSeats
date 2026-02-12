@@ -88,3 +88,21 @@ cypress/screenshots/
 *.tgz
 *.zip
 *.tar.gz
+
+# ========================================
+# AZURE & SECRETS - NEVER COMMIT!
+# ========================================
+.env
+.env.*
+!.env.example
+*.secrets
+secrets.json
+outputs.json
+tfplan
+
+# Azure credentials
+azure-credentials.json
+service-principal.json
+
+# Amadeus API keys
+amadeus-credentials.json

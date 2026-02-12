@@ -1,2 +1,30 @@
+# Azure Functions
 azure-functions
 azure-functions-durable
+
+# Azure SDKs
+azure-cosmos>=4.5.0
+azure-storage-blob>=12.19.0
+azure-keyvault-secrets>=4.7.0
+azure-identity>=1.15.0
+azure-monitor-opentelemetry>=1.2.0
+
+# Redis para caching
+redis>=5.0.1
+
+# API externa - Amadeus
+amadeus>=8.0.0
+
+# Web framework y utilidades
+flask>=3.0.0
+requests>=2.31.0
+PyJWT>=2.8.0
+python-dotenv>=1.0.0
+
+# Validación y serialización
+pydantic>=2.5.0
+marshmallow>=3.20.0
+
+# Utilidades
+python-dateutil>=2.8.2
+pytz>=2023.3

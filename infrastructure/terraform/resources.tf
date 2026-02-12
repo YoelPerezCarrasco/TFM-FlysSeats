@@ -1,4 +1,6 @@
-# Resource Group
+# ============================================
+# RESOURCE GROUP
+# ============================================
 resource "azurerm_resource_group" "main" {
   name     = "${var.project_name}-${var.environment}-rg"
   location = var.location
@@ -6,16 +8,19 @@ resource "azurerm_resource_group" "main" {
   tags = {
     Environment = var.environment
     Project     = var.project_name
+    ManagedBy   = "Terraform"
   }
 }
 
-# Storage Account for Azure Functions
-resource "azurerm_storage_account" "functions" {
-  name                     = "${var.project_name}${var.environment}storage"
-  resource_group_name      = azurerm_resource_group.main.name
-  location                 = azurerm_resource_group.main.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
+# ============================================
+# LOG ANALYTICS & APPLICATION INSIGHTS
+# ============================================
+resource "azurerm_log_analytics_workspace" "main" {
+  name                = "${var.project_name}-${var.environment}-logs"
+  location            = azurerm_resource_group.main.location
+  resource_group_name = azurerm_resource_group.main.name
+  sku                 = "PerGB2018"
+  retention_in_days   = var.environment == "prod" ? 90 : 30
 
   tags = {
     Environment = var.environment
@@ -23,13 +28,244 @@ resource "azurerm_storage_account" "functions" {
   }
 }
 
-# App Service Plan for Azure Functions
+resource "azurerm_application_insights" "main" {
+  name                = "${var.project_name}-${var.environment}-insights"
+  location            = azurerm_resource_group.main.location
+  resource_group_name = azurerm_resource_group.main.name
+  workspace_id        = azurerm_log_analytics_workspace.main.id
+  application_type    = "web"
+
+  tags = {
+    Environment = var.environment
+    Project     = var.project_name
+  }
+}
+
+# ============================================
+# KEY VAULT (para secretos y credenciales)
+# ============================================
+data "azurerm_client_config" "current" {}
+
+resource "azurerm_key_vault" "main" {
+  name                        = "${var.project_name}-${var.environment}-kv"
+  location                    = azurerm_resource_group.main.location
+  resource_group_name         = azurerm_resource_group.main.name
+  enabled_for_disk_encryption = true
+  tenant_id                   = data.azurerm_client_config.current.tenant_id
+  soft_delete_retention_days  = 7
+  purge_protection_enabled    = var.environment == "prod" ? true : false
+  sku_name                    = "standard"
+
+  access_policy {
+    tenant_id = data.azurerm_client_config.current.tenant_id
+    object_id = data.azurerm_client_config.current.object_id
+
+    secret_permissions = [
+      "Get", "List", "Set", "Delete", "Purge", "Recover"
+    ]
+  }
+
+  tags = {
+    Environment = var.environment
+    Project     = var.project_name
+  }
+}
+
+# Secretos del Key Vault (se configuran después manualmente o vía pipeline)
+resource "azurerm_key_vault_secret" "amadeus_api_key" {
+  name         = "amadeus-api-key"
+  value        = var.amadeus_api_key != "" ? var.amadeus_api_key : "PLACEHOLDER"
+  key_vault_id = azurerm_key_vault.main.id
+
+  lifecycle {
+    ignore_changes = [value]
+  }
+}
+
+resource "azurerm_key_vault_secret" "amadeus_api_secret" {
+  name         = "amadeus-api-secret"
+  value        = var.amadeus_api_secret != "" ? var.amadeus_api_secret : "PLACEHOLDER"
+  key_vault_id = azurerm_key_vault.main.id
+
+  lifecycle {
+    ignore_changes = [value]
+  }
+}
+
+# ============================================
+# COSMOS DB (Base de datos NoSQL)
+# ============================================
+resource "azurerm_cosmosdb_account" "main" {
+  name                = "${var.project_name}-${var.environment}-cosmos"
+  location            = azurerm_resource_group.main.location
+  resource_group_name = azurerm_resource_group.main.name
+  offer_type          = "Standard"
+  kind                = "GlobalDocumentDB"
+
+  consistency_policy {
+    consistency_level       = "Session"
+    max_interval_in_seconds = 5
+    max_staleness_prefix    = 100
+  }
+
+  geo_location {
+    location          = azurerm_resource_group.main.location
+    failover_priority = 0
+  }
+
+  capabilities {
+    name = "EnableServerless"
+  }
+
+  tags = {
+    Environment = var.environment
+    Project     = var.project_name
+  }
+}
+
+resource "azurerm_cosmosdb_sql_database" "main" {
+  name                = "flyseats-db"
+  resource_group_name = azurerm_resource_group.main.name
+  account_name        = azurerm_cosmosdb_account.main.name
+}
+
+# Contenedores de Cosmos DB
+resource "azurerm_cosmosdb_sql_container" "users" {
+  name                = "users"
+  resource_group_name = azurerm_resource_group.main.name
+  account_name        = azurerm_cosmosdb_account.main.name
+  database_name       = azurerm_cosmosdb_sql_database.main.name
+  partition_key_path  = "/userId"
+}
+
+resource "azurerm_cosmosdb_sql_container" "bookings" {
+  name                = "bookings"
+  resource_group_name = azurerm_resource_group.main.name
+  account_name        = azurerm_cosmosdb_account.main.name
+  database_name       = azurerm_cosmosdb_sql_database.main.name
+  partition_key_path  = "/userId"
+}
+
+resource "azurerm_cosmosdb_sql_container" "flights_cache" {
+  name                = "flights-cache"
+  resource_group_name = azurerm_resource_group.main.name
+  account_name        = azurerm_cosmosdb_account.main.name
+  database_name       = azurerm_cosmosdb_sql_database.main.name
+  partition_key_path  = "/searchKey"
+  
+  default_ttl = 3600  # Cache por 1 hora
+}
+
+# ============================================
+# REDIS CACHE (para sesiones y cache de alto rendimiento)
+# ============================================
+resource "azurerm_redis_cache" "main" {
+  name                = "${var.project_name}-${var.environment}-redis"
+  location            = azurerm_resource_group.main.location
+  resource_group_name = azurerm_resource_group.main.name
+  capacity            = var.environment == "prod" ? 1 : 0
+  family              = var.environment == "prod" ? "C" : "C"
+  sku_name            = var.environment == "prod" ? "Standard" : "Basic"
+  enable_non_ssl_port = false
+  minimum_tls_version = "1.2"
+
+  redis_configuration {
+    maxmemory_policy = "allkeys-lru"
+  }
+
+  tags = {
+    Environment = var.environment
+    Project     = var.project_name
+  }
+}
+
+# ============================================
+# STORAGE ACCOUNT (para Functions y archivos)
+# ============================================
+resource "azurerm_storage_account" "functions" {
+  name                     = "${var.project_name}${var.environment}funcst"
+  resource_group_name      = azurerm_resource_group.main.name
+  location                 = azurerm_resource_group.main.location
+  account_tier             = "Standard"
+  account_replication_type = var.environment == "prod" ? "GRS" : "LRS"
+  min_tls_version          = "TLS1_2"
+
+  blob_properties {
+    delete_retention_policy {
+      days = 7
+    }
+  }
+
+  tags = {
+    Environment = var.environment
+    Project     = var.project_name
+  }
+}
+
+resource "azurerm_storage_account" "data" {
+  name                     = "${var.project_name}${var.environment}data"
+  resource_group_name      = azurerm_resource_group.main.name
+  location                 = azurerm_resource_group.main.location
+  account_tier             = "Standard"
+  account_replication_type = var.environment == "prod" ? "GRS" : "LRS"
+  min_tls_version          = "TLS1_2"
+
+  blob_properties {
+    delete_retention_policy {
+      days = 30
+    }
+  }
+
+  tags = {
+    Environment = var.environment
+    Project     = var.project_name
+  }
+}
+
+# Contenedores de Storage
+resource "azurerm_storage_container" "tickets" {
+  name                  = "tickets"
+  storage_account_name  = azurerm_storage_account.data.name
+  container_access_type = "private"
+}
+
+resource "azurerm_storage_container" "documents" {
+  name                  = "documents"
+  storage_account_name  = azurerm_storage_account.data.name
+  container_access_type = "private"
+}
+
+# ============================================
+# API MANAGEMENT (Gateway para las APIs)
+# ============================================
+resource "azurerm_api_management" "main" {
+  count               = var.environment == "prod" ? 1 : 0
+  name                = "${var.project_name}-${var.environment}-apim"
+  location            = azurerm_resource_group.main.location
+  resource_group_name = azurerm_resource_group.main.name
+  publisher_name      = var.publisher_name
+  publisher_email     = var.publisher_email
+  sku_name            = "Consumption_0"
+
+  identity {
+    type = "SystemAssigned"
+  }
+
+  tags = {
+    Environment = var.environment
+    Project     = var.project_name
+  }
+}
+
+# ============================================
+# APP SERVICE PLAN & AZURE FUNCTIONS
+# ============================================
 resource "azurerm_service_plan" "functions" {
   name                = "${var.project_name}-${var.environment}-functions-plan"
   resource_group_name = azurerm_resource_group.main.name
   location            = azurerm_resource_group.main.location
   os_type             = "Linux"
-  sku_name            = "Y1"
+  sku_name            = var.environment == "prod" ? "EP1" : "Y1"  # EP1 para prod (elastic premium)
 
   tags = {
     Environment = var.environment
@@ -37,7 +273,6 @@ resource "azurerm_service_plan" "functions" {
   }
 }
 
-# Azure Function App
 resource "azurerm_linux_function_app" "main" {
   name                = "${var.project_name}-${var.environment}-functions"
   resource_group_name = azurerm_resource_group.main.name
@@ -47,18 +282,47 @@ resource "azurerm_linux_function_app" "main" {
   storage_account_access_key = azurerm_storage_account.functions.primary_access_key
   service_plan_id            = azurerm_service_plan.functions.id
 
+  identity {
+    type = "SystemAssigned"
+  }
+
   site_config {
     application_stack {
       python_version = "3.9"
     }
 
     cors {
-      allowed_origins = ["*"]
+      allowed_origins     = var.environment == "prod" ? [azurerm_linux_web_app.frontend.default_hostname] : ["*"]
+      support_credentials = true
     }
+
+    application_insights_connection_string = azurerm_application_insights.main.connection_string
+    application_insights_key               = azurerm_application_insights.main.instrumentation_key
   }
 
   app_settings = {
-    "FUNCTIONS_WORKER_RUNTIME" = "python"
+    "FUNCTIONS_WORKER_RUNTIME"       = "python"
+    "APPINSIGHTS_INSTRUMENTATIONKEY" = azurerm_application_insights.main.instrumentation_key
+    
+    # Cosmos DB
+    "COSMOS_ENDPOINT"   = azurerm_cosmosdb_account.main.endpoint
+    "COSMOS_KEY"        = azurerm_cosmosdb_account.main.primary_key
+    "COSMOS_DATABASE"   = azurerm_cosmosdb_sql_database.main.name
+    
+    # Redis Cache
+    "REDIS_HOST"     = azurerm_redis_cache.main.hostname
+    "REDIS_PORT"     = azurerm_redis_cache.main.ssl_port
+    "REDIS_PASSWORD" = azurerm_redis_cache.main.primary_access_key
+    
+    # Key Vault
+    "KEY_VAULT_URL" = azurerm_key_vault.main.vault_uri
+    
+    # Storage
+    "STORAGE_CONNECTION_STRING" = azurerm_storage_account.data.primary_connection_string
+    
+    # Amadeus API (se obtienen del Key Vault en runtime)
+    "AMADEUS_API_KEY"    = "@Microsoft.KeyVault(SecretUri=${azurerm_key_vault.main.vault_uri}secrets/amadeus-api-key/)"
+    "AMADEUS_API_SECRET" = "@Microsoft.KeyVault(SecretUri=${azurerm_key_vault.main.vault_uri}secrets/amadeus-api-secret/)"
   }
 
   tags = {
@@ -67,7 +331,20 @@ resource "azurerm_linux_function_app" "main" {
   }
 }
 
-# App Service Plan for Web App
+# Dar acceso al Function App al Key Vault
+resource "azurerm_key_vault_access_policy" "functions" {
+  key_vault_id = azurerm_key_vault.main.id
+  tenant_id    = azurerm_linux_function_app.main.identity[0].tenant_id
+  object_id    = azurerm_linux_function_app.main.identity[0].principal_id
+
+  secret_permissions = [
+    "Get", "List"
+  ]
+}
+
+# ============================================
+# APP SERVICE PLAN & WEB APP (Frontend)
+# ============================================
 resource "azurerm_service_plan" "webapp" {
   name                = "${var.project_name}-${var.environment}-webapp-plan"
   resource_group_name = azurerm_resource_group.main.name
@@ -81,7 +358,6 @@ resource "azurerm_service_plan" "webapp" {
   }
 }
 
-# Linux Web App for Angular Frontend
 resource "azurerm_linux_web_app" "frontend" {
   name                = "${var.project_name}-${var.environment}-webapp"
   resource_group_name = azurerm_resource_group.main.name
@@ -89,16 +365,58 @@ resource "azurerm_linux_web_app" "frontend" {
   service_plan_id     = azurerm_service_plan.webapp.id
 
   site_config {
-    always_on = false
+    always_on = var.environment == "prod" ? true : false
 
     application_stack {
       node_version = "18-lts"
     }
+
+    application_insights_connection_string = azurerm_application_insights.main.connection_string
+    application_insights_key               = azurerm_application_insights.main.instrumentation_key
   }
 
   app_settings = {
-    "WEBSITE_NODE_DEFAULT_VERSION" = "18-lts"
+    "WEBSITE_NODE_DEFAULT_VERSION"   = "18-lts"
+    "APPINSIGHTS_INSTRUMENTATIONKEY" = azurerm_application_insights.main.instrumentation_key
+    "API_ENDPOINT"                   = "https://${azurerm_linux_function_app.main.default_hostname}"
   }
+
+  tags = {
+    Environment = var.environment
+    Project     = var.project_name
+  }
+}
+
+# ============================================
+# CDN PROFILE (para distribución global del frontend)
+# ============================================
+resource "azurerm_cdn_profile" "main" {
+  count               = var.environment == "prod" ? 1 : 0
+  name                = "${var.project_name}-${var.environment}-cdn"
+  location            = azurerm_resource_group.main.location
+  resource_group_name = azurerm_resource_group.main.name
+  sku                 = "Standard_Microsoft"
+
+  tags = {
+    Environment = var.environment
+    Project     = var.project_name
+  }
+}
+
+resource "azurerm_cdn_endpoint" "frontend" {
+  count               = var.environment == "prod" ? 1 : 0
+  name                = "${var.project_name}-${var.environment}-cdn-endpoint"
+  profile_name        = azurerm_cdn_profile.main[0].name
+  location            = azurerm_resource_group.main.location
+  resource_group_name = azurerm_resource_group.main.name
+
+  origin {
+    name      = "webapp"
+    host_name = azurerm_linux_web_app.frontend.default_hostname
+  }
+
+  is_http_allowed  = false
+  is_https_allowed = true
 
   tags = {
     Environment = var.environment
