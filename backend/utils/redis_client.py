@@ -4,6 +4,7 @@ Cliente de Redis para caching de alto rendimiento
 import redis
 import json
 import logging
+import os
 from typing import Any, Optional
 from config import Config
 
@@ -25,6 +26,14 @@ class RedisClient:
     @classmethod
     def _initialize(cls):
         """Inicializa la conexión con Redis"""
+        # Verificar si Redis está habilitado
+        redis_enabled = os.getenv('REDIS_ENABLED', 'false').lower() == 'true'
+        
+        if not redis_enabled or not Config.REDIS_HOST:
+            logger.info("ℹ️  Redis deshabilitado - usando solo Cosmos DB cache (modo TFM)")
+            cls._client = None
+            return
+        
         try:
             cls._client = redis.Redis(
                 host=Config.REDIS_HOST,
@@ -39,7 +48,7 @@ class RedisClient:
             cls._client.ping()
             logger.info("✅ Conexión con Redis establecida")
         except Exception as e:
-            logger.error(f"❌ Error conectando con Redis: {e}")
+            logger.warning(f"⚠️  Redis no disponible: {e} - usando Cosmos DB cache")
             # No lanzar excepción, la app puede funcionar sin cache
             cls._client = None
     

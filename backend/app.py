@@ -1,0 +1,205 @@
+"""
+FlysSeats Backend API - Flask Application
+
+API REST para gestión de vuelos y reservas usando Azure Cosmos DB y Amadeus API.
+"""
+
+from flask import Flask, request, jsonify
+from flask_cors import CORS
+import os
+import sys
+import logging
+
+# Agregar el directorio raíz al path
+sys.path.insert(0, os.path.dirname(__file__))
+
+# Importar módulos locales
+from utils.cosmos_client import CosmosDBClient
+from utils.amadeus_client import AmadeusClient
+from config import Config
+
+# Configurar logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+# Crear aplicación Flask
+app = Flask(__name__)
+CORS(app)  # Habilitar CORS para todas las rutas
+
+# Inicializar clientes
+try:
+    cosmos_client = CosmosDBClient()
+    amadeus_client = AmadeusClient()
+    logger.info("✅ Clientes inicializados correctamente")
+except Exception as e:
+    logger.error(f"❌ Error inicializando clientes: {str(e)}")
+    cosmos_client = None
+    amadeus_client = None
+
+# ============================================
+# RUTAS - HEALTH CHECK
+# ============================================
+
+@app.route('/', methods=['GET'])
+@app.route('/api/health', methods=['GET'])
+def health_check():
+    """Health check endpoint"""
+    return jsonify({
+        'status': 'healthy',
+        'service': 'FlysSeats API',
+        'version': '1.0.0',
+        'cosmos_db': 'connected' if cosmos_client else 'disconnected',
+        'amadeus_api': 'connected' if amadeus_client else 'disconnected'
+    }), 200
+
+# ============================================
+# RUTAS - AUTHENTICATION
+# ============================================
+
+@app.route('/api/auth/register', methods=['POST'])
+def register():
+    """Registrar nuevo usuario"""
+    try:
+        data = request.get_json()
+        
+        if not data or not all(key in data for key in ['email', 'password', 'name']):
+            return jsonify({'error': 'Faltan datos requeridos'}), 400
+        
+        # Verificar si el usuario ya existe
+        existing_user = cosmos_client.get_user_by_email(data['email'])
+        if existing_user:
+            return jsonify({'error': 'El usuario ya existe'}), 409
+        
+        # Crear usuario
+        user_id = cosmos_client.create_user(
+            email=data['email'],
+            password=data['password'],  # En producción, hashear la contraseña
+            name=data['name']
+        )
+        
+        return jsonify({
+            'message': 'Usuario registrado exitosamente',
+            'userId': user_id
+        }), 201
+        
+    except Exception as e:
+        logger.error(f"Error en registro: {str(e)}")
+        return jsonify({'error': 'Error interno del servidor'}), 500
+
+@app.route('/api/auth/login', methods=['POST'])
+def login():
+    """Iniciar sesión"""
+    try:
+        data = request.get_json()
+        
+        if not data or not all(key in data for key in ['email', 'password']):
+            return jsonify({'error': 'Faltan datos requeridos'}), 400
+        
+        # Buscar usuario
+        user = cosmos_client.get_user_by_email(data['email'])
+        if not user or user.get('password') != data['password']:
+            return jsonify({'error': 'Credenciales inválidas'}), 401
+        
+        # En producción, generar JWT token aquí
+        return jsonify({
+            'message': 'Login exitoso',
+            'user': {
+                'id': user['id'],
+                'email': user['email'],
+                'name': user['name']
+            }
+        }), 200
+        
+    except Exception as e:
+        logger.error(f"Error en login: {str(e)}")
+        return jsonify({'error': 'Error interno del servidor'}), 500
+
+# ============================================
+# RUTAS - FLIGHTS
+# ============================================
+
+@app.route('/api/flights/search', methods=['GET'])
+def search_flights():
+    """Buscar vuelos"""
+    try:
+        # Obtener parámetros de búsqueda
+        origin = request.args.get('origin')
+        destination = request.args.get('destination')
+        departure_date = request.args.get('departureDate')
+        adults = request.args.get('adults', '1')
+        
+        if not all([origin, destination, departure_date]):
+            return jsonify({'error': 'Faltan parámetros requeridos'}), 400
+        
+        # Buscar vuelos con Amadeus API
+        flights = amadeus_client.search_flights(
+            origin=origin,
+            destination=destination,
+            departure_date=departure_date,
+            adults=int(adults)
+        )
+        
+        return jsonify({'flights': flights}), 200
+        
+    except Exception as e:
+        logger.error(f"Error buscando vuelos: {str(e)}")
+        return jsonify({'error': 'Error buscando vuelos'}), 500
+
+# ============================================
+# RUTAS - BOOKINGS
+# ============================================
+
+@app.route('/api/bookings', methods=['POST'])
+def create_booking():
+    """Crear nueva reserva"""
+    try:
+        data = request.get_json()
+        
+        if not data or not all(key in data for key in ['userId', 'flight']):
+            return jsonify({'error': 'Faltan datos requeridos'}), 400
+        
+        # Crear reserva
+        booking_id = cosmos_client.create_booking(
+            user_id=data['userId'],
+            flight=data['flight']
+        )
+        
+        return jsonify({
+            'message': 'Reserva creada exitosamente',
+            'bookingId': booking_id
+        }), 201
+        
+    except Exception as e:
+        logger.error(f"Error creando reserva: {str(e)}")
+        return jsonify({'error': 'Error interno del servidor'}), 500
+
+@app.route('/api/bookings/<user_id>', methods=['GET'])
+def get_bookings(user_id):
+    """Obtener reservas de un usuario"""
+    try:
+        bookings = cosmos_client.get_user_bookings(user_id)
+        return jsonify({'bookings': bookings}), 200
+        
+    except Exception as e:
+        logger.error(f"Error obteniendo reservas: {str(e)}")
+        return jsonify({'error': 'Error interno del servidor'}), 500
+
+# ============================================
+# ERROR HANDLERS
+# ============================================
+
+@app.errorhandler(404)
+def not_found(error):
+    return jsonify({'error': 'Endpoint no encontrado'}), 404
+
+@app.errorhandler(500)
+def internal_error(error):
+    return jsonify({'error': 'Error interno del servidor'}), 500
+
+# ============================================
+# MAIN
+# ============================================
+
+if __name__ == '__main__':
+    port = int(os.environ.get('PORT', 8000))
+    app.run(host='0.0.0.0', port=port, debug=True)

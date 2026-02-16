@@ -72,17 +72,25 @@ class Config:
     @classmethod
     def validate_config(cls):
         """Valida que todas las configuraciones necesarias estén presentes"""
+        # Redis es opcional (para TFM puede estar deshabilitado)
+        redis_enabled = os.getenv('REDIS_ENABLED', 'false').lower() == 'true'
+        
         required = [
             'COSMOS_ENDPOINT',
-            'COSMOS_KEY',
-            'REDIS_HOST',
-            'REDIS_PASSWORD'
+            'COSMOS_KEY'
         ]
+        
+        # Solo validar Redis si está habilitado
+        if redis_enabled:
+            required.extend(['REDIS_HOST', 'REDIS_PASSWORD'])
         
         missing = [key for key in required if not getattr(cls, key)]
         
         if missing:
             raise ValueError(f"Faltan configuraciones requeridas: {', '.join(missing)}")
+        
+        if not redis_enabled:
+            print("ℹ️  Modo TFM: Redis deshabilitado (ahorro de costos)")
         
         return True
 

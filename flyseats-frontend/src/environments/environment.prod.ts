@@ -1,4 +1,4 @@
 export const environment = {
   production: true,
-  apiUrl: '/api'  // Will use same domain in production
+  apiUrl: 'https://flyseats2-dev-api.azurewebsites.net/api'
 };
