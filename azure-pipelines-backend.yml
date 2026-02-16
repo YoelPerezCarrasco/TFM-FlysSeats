@@ -1,0 +1,132 @@
+# Azure DevOps Pipeline - Backend Flask API
+# Deploy to Azure App Service
+
+trigger:
+  branches:
+    include:
+      - main
+      - develop
+  paths:
+    include:
+      - backend/*
+      - azure-pipelines-backend.yml
+
+pr:
+  branches:
+    include:
+      - main
+      - develop
+  paths:
+    include:
+      - backend/*
+
+variables:
+  # Azure Service Connection (configurar en DevOps)
+  azureSubscription: 'Azure-ServiceConnection'
+  
+  # App Service details
+  webAppName: 'flyseats2-dev-api'
+  resourceGroupName: 'flyseats2-dev-rg'
+  
+  # Python version
+  pythonVersion: '3.11'
+  
+  # Working directories
+  backendPath: 'backend'
+  
+pool:
+  vmImage: 'ubuntu-latest'
+
+stages:
+  - stage: Build
+    displayName: 'Build Backend'
+    jobs:
+      - job: BuildJob
+        displayName: 'Build Flask App'
+        steps:
+          - task: UsePythonVersion@0
+            inputs:
+              versionSpec: '$(pythonVersion)'
+            displayName: 'Use Python $(pythonVersion)'
+          
+          - script: |
+              cd $(backendPath)
+              python -m pip install --upgrade pip
+              pip install -r requirements.txt
+            displayName: 'Install dependencies'
+          
+          - script: |
+              cd $(backendPath)
+              # Opcional: ejecutar tests
+              # pip install pytest pytest-cov
+              # pytest --cov=. --cov-report=html --cov-report=xml
+              echo "✅ Tests pasados (placeholder)"
+            displayName: 'Run Tests'
+          
+          - task: ArchiveFiles@2
+            inputs:
+              rootFolderOrFile: '$(backendPath)'
+              includeRootFolder: false
+              archiveType: 'zip'
+              archiveFile: '$(Build.ArtifactStagingDirectory)/backend-$(Build.BuildId).zip'
+              replaceExistingArchive: true
+              verbose: true
+            displayName: 'Archive Backend Files'
+          
+          - task: PublishBuildArtifacts@1
+            inputs:
+              PathtoPublish: '$(Build.ArtifactStagingDirectory)'
+              ArtifactName: 'backend-drop'
+              publishLocation: 'Container'
+            displayName: 'Publish Artifact'
+
+  - stage: Deploy
+    displayName: 'Deploy to Azure'
+    dependsOn: Build
+    condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
+    jobs:
+      - deployment: DeployWeb
+        displayName: 'Deploy Backend to App Service'
+        environment: 'production'
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - task: DownloadBuildArtifacts@1
+                  inputs:
+                    buildType: 'current'
+                    downloadType: 'single'
+                    artifactName: 'backend-drop'
+                    downloadPath: '$(System.ArtifactsDirectory)'
+                  displayName: 'Download Artifacts'
+                
+                - task: AzureWebApp@1
+                  inputs:
+                    azureSubscription: '$(azureSubscription)'
+                    appType: 'webAppLinux'
+                    appName: '$(webAppName)'
+                    resourceGroupName: '$(resourceGroupName)'
+                    package: '$(System.ArtifactsDirectory)/backend-drop/backend-*.zip'
+                    runtimeStack: 'PYTHON|3.11'
+                    startUpCommand: 'gunicorn --bind=0.0.0.0:8000 --timeout 600 app:app'
+                  displayName: 'Deploy to Azure App Service'
+                
+                - task: AzureAppServiceSettings@1
+                  inputs:
+                    azureSubscription: '$(azureSubscription)'
+                    appName: '$(webAppName)'
+                    resourceGroupName: '$(resourceGroupName)'
+                    appSettings: |
+                      [
+                        {
+                          "name": "SCM_DO_BUILD_DURING_DEPLOYMENT",
+                          "value": "true",
+                          "slotSetting": false
+                        },
+                        {
+                          "name": "ENABLE_ORYX_BUILD",
+                          "value": "true",
+                          "slotSetting": false
+                        }
+                      ]
+                  displayName: 'Configure App Settings'

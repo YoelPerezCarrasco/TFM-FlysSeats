@@ -5,7 +5,6 @@ import sys
 import os
 import uuid
 from datetime import datetime, timedelta
-import bcrypt
 
 # Agregar el directorio raíz al path
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
@@ -31,7 +30,7 @@ def insert_test_data():
             'userId': test_user_id,
             'email': 'test@flyseats.com',
             'name': 'Usuario de Prueba',
-            'password': bcrypt.hashpw('test123'.encode('utf-8'), bcrypt.gensalt()).decode('utf-8'),
+            'password': 'test123',  # TFM demo - password en texto plano
             'createdAt': datetime.utcnow().isoformat(),
             'role': 'user'
         }

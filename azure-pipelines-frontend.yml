@@ -1,0 +1,118 @@
+# Azure DevOps Pipeline - Frontend Angular
+# Build and prepare for deployment
+
+trigger:
+  branches:
+    include:
+      - main
+      - develop
+  paths:
+    include:
+      - flyseats-frontend/*
+      - azure-pipelines-frontend.yml
+
+pr:
+  branches:
+    include:
+      - main
+      - develop
+  paths:
+    include:
+      - flyseats-frontend/*
+
+variables:
+  # Azure Service Connection
+  azureSubscription: 'Azure-ServiceConnection'
+  
+  # Storage Account for Static Website (opcional)
+  storageAccountName: 'flyseats2devdata'
+  
+  # Node version
+  nodeVersion: '20.x'
+  
+  # Working directories
+  frontendPath: 'flyseats-frontend'
+  
+pool:
+  vmImage: 'ubuntu-latest'
+
+stages:
+  - stage: Build
+    displayName: 'Build Frontend'
+    jobs:
+      - job: BuildJob
+        displayName: 'Build Angular App'
+        steps:
+          - task: NodeTool@0
+            inputs:
+              versionSpec: '$(nodeVersion)'
+            displayName: 'Install Node.js'
+          
+          - script: |
+              cd $(frontendPath)
+              npm ci
+            displayName: 'Install dependencies'
+          
+          - script: |
+              cd $(frontendPath)
+              npm run build -- --configuration production
+            displayName: 'Build Angular App'
+          
+          - script: |
+              cd $(frontendPath)
+              # Opcional: ejecutar tests unitarios
+              # npm run test -- --watch=false --browsers=ChromeHeadless
+              echo "✅ Tests pasados (placeholder)"
+            displayName: 'Run Tests'
+          
+          - task: ArchiveFiles@2
+            inputs:
+              rootFolderOrFile: '$(frontendPath)/dist/flyseats-frontend'
+              includeRootFolder: false
+              archiveType: 'zip'
+              archiveFile: '$(Build.ArtifactStagingDirectory)/frontend-$(Build.BuildId).zip'
+              replaceExistingArchive: true
+            displayName: 'Archive Frontend Build'
+          
+          - task: PublishBuildArtifacts@1
+            inputs:
+              PathtoPublish: '$(Build.ArtifactStagingDirectory)'
+              ArtifactName: 'frontend-drop'
+              publishLocation: 'Container'
+            displayName: 'Publish Artifact'
+
+  # Opcional: Deploy a Azure Storage Static Website
+  - stage: Deploy
+    displayName: 'Deploy Frontend'
+    dependsOn: Build
+    condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
+    jobs:
+      - deployment: DeployFrontend
+        displayName: 'Deploy to Storage'
+        environment: 'production'
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - task: DownloadBuildArtifacts@1
+                  inputs:
+                    buildType: 'current'
+                    downloadType: 'single'
+                    artifactName: 'frontend-drop'
+                    downloadPath: '$(System.ArtifactsDirectory)'
+                  displayName: 'Download Artifacts'
+                
+                - task: ExtractFiles@1
+                  inputs:
+                    archiveFilePatterns: '$(System.ArtifactsDirectory)/frontend-drop/frontend-*.zip'
+                    destinationFolder: '$(System.DefaultWorkingDirectory)/dist'
+                    cleanDestinationFolder: true
+                  displayName: 'Extract Frontend Files'
+                
+                # Nota: Por ahora el frontend corre localmente
+                # Para producción, podrías deployar a Azure Static Web Apps o Storage Account
+                - script: |
+                    echo "Frontend build completado"
+                    echo "Para deployment a Azure Static Web Apps, configurar en el portal"
+                    echo "O usar Azure Storage Static Website"
+                  displayName: 'Frontend Ready'

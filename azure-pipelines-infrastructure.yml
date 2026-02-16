@@ -1,0 +1,100 @@
+# Azure DevOps Pipeline - Infrastructure (Terraform)
+# Deploy or update Azure infrastructure
+
+trigger:
+  branches:
+    include:
+      - main
+  paths:
+    include:
+      - infrastructure/*
+      - azure-pipelines-infrastructure.yml
+
+pr: none
+
+variables:
+  # Azure Service Connection
+  azureSubscription: 'Azure-ServiceConnection'
+  
+  # Terraform backend (si usas remote state)
+  terraformVersion: '1.14.5'
+  workingDirectory: 'infrastructure/terraform'
+  
+pool:
+  vmImage: 'ubuntu-latest'
+
+stages:
+  - stage: Validate
+    displayName: 'Validate Terraform'
+    jobs:
+      - job: ValidateJob
+        displayName: 'Terraform Validate & Plan'
+        steps:
+          - task: TerraformInstaller@1
+            inputs:
+              terraformVersion: '$(terraformVersion)'
+            displayName: 'Install Terraform'
+          
+          - task: TerraformTaskV4@4
+            inputs:
+              provider: 'azurerm'
+              command: 'init'
+              workingDirectory: '$(workingDirectory)'
+              backendServiceArm: '$(azureSubscription)'
+              commandOptions: '-upgrade'
+            displayName: 'Terraform Init'
+          
+          - task: TerraformTaskV4@4
+            inputs:
+              provider: 'azurerm'
+              command: 'validate'
+              workingDirectory: '$(workingDirectory)'
+            displayName: 'Terraform Validate'
+          
+          - task: TerraformTaskV4@4
+            inputs:
+              provider: 'azurerm'
+              command: 'plan'
+              workingDirectory: '$(workingDirectory)'
+              environmentServiceNameAzureRM: '$(azureSubscription)'
+              commandOptions: '-var-file="tfm.tfvars" -out=tfplan'
+            displayName: 'Terraform Plan'
+          
+          - task: PublishPipelineArtifact@1
+            inputs:
+              targetPath: '$(workingDirectory)'
+              artifact: 'terraform-plan'
+              publishLocation: 'pipeline'
+            displayName: 'Publish Terraform Plan'
+
+  - stage: Apply
+    displayName: 'Apply Infrastructure'
+    dependsOn: Validate
+    condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
+    jobs:
+      - deployment: ApplyTerraform
+        displayName: 'Deploy Infrastructure'
+        environment: 'production-infrastructure'
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - task: DownloadPipelineArtifact@2
+                  inputs:
+                    artifact: 'terraform-plan'
+                    path: '$(System.DefaultWorkingDirectory)/terraform'
+                  displayName: 'Download Terraform Plan'
+                
+                - task: TerraformInstaller@1
+                  inputs:
+                    terraformVersion: '$(terraformVersion)'
+                  displayName: 'Install Terraform'
+                
+                - task: TerraformTaskV4@4
+                  inputs:
+                    provider: 'azurerm'
+                    command: 'apply'
+                    workingDirectory: '$(System.DefaultWorkingDirectory)/terraform'
+                    environmentServiceNameAzureRM: '$(azureSubscription)'
+                    commandOptions: 'tfplan'
+                  displayName: 'Terraform Apply'

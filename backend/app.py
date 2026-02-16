@@ -70,10 +70,10 @@ def register():
         if existing_user:
             return jsonify({'error': 'El usuario ya existe'}), 409
         
-        # Crear usuario
+        # Crear usuario (TFM: password en texto plano para simplicidad)
         user_id = cosmos_client.create_user(
             email=data['email'],
-            password=data['password'],  # En producción, hashear la contraseña
+            password=data['password'],  # TFM demo - en producción usar hash
             name=data['name']
         )
         
@@ -95,7 +95,7 @@ def login():
         if not data or not all(key in data for key in ['email', 'password']):
             return jsonify({'error': 'Faltan datos requeridos'}), 400
         
-        # Buscar usuario
+        # Buscar usuario y verificar password
         user = cosmos_client.get_user_by_email(data['email'])
         if not user or user.get('password') != data['password']:
             return jsonify({'error': 'Credenciales inválidas'}), 401

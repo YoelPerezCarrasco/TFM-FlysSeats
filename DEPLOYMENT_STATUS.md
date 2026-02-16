@@ -1,10 +1,13 @@
 # 🚀 Estado del Deployment - FlysSeats TFM
 
+**Última Actualización**: 16 de Febrero, 2026 - ✅ **ARREGLADO Y FUNCIONANDO**
+
 ## ✅ Infraestructura Desplegada en Azure
 
 ### Recursos en Producción (Germany West Central)
 - **Resource Group**: `flyseats2-dev-rg`
-- **Backend API**: https://flyseats2-dev-api.azurewebsites.net
+- **Backend API**: https://flyseats2-dev-api.azurewebsites.net ✅
+- **Estado**: **Operacional** - Deployment arreglado con `az webapp up`
 - **Frontend**: http://localhost:4200 (desarrollo local)
 
 ### Servicios Azure Activos
@@ -12,12 +15,14 @@
    - Modo: Serverless
    - Base de datos: `flyseats2-db`
    - Contenedores: users, flights, bookings
+   - Estado: ✅ Connected
 
 2. **Azure App Service** (`flyseats2-dev-api`)
    - Plan: F1 (Free tier)
-   - Runtime: Python 3.9 + Flask + Gunicorn
+   - Runtime: **Python 3.11** + Flask + Gunicorn
    - Status: ✅ Running
    - Health: https://flyseats2-dev-api.azurewebsites.net/api/health
+   - Startup: `gunicorn --bind=0.0.0.0:8000 --timeout 600 app:app`
 
 3. **Azure Storage Account** (`flyseats2devdata`)
    - Containers: documents, tickets
