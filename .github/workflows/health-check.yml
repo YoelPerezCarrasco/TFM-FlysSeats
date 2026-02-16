@@ -1,0 +1,33 @@
+name: API Health Check
+
+on:
+  schedule:
+    - cron: '0 */6 * * *'  # Cada 6 horas
+  workflow_dispatch:  # Manual trigger
+
+jobs:
+  health-check:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Check Backend API
+        run: |
+          echo "🔍 Checking FlysSeats Backend API..."
+          
+          HEALTH_URL="https://flyseats2-dev-api.azurewebsites.net/api/health"
+          
+          if curl -f -s -o /dev/null -w "%{http_code}" $HEALTH_URL | grep -q "200"; then
+            echo "✅ API is healthy"
+          else
+            echo "❌ API health check failed"
+            exit 1
+          fi
+      
+      - name: Test Login Endpoint
+        run: |
+          echo "🔐 Testing login endpoint..."
+          
+          curl -X POST https://flyseats2-dev-api.azurewebsites.net/api/auth/login \
+            -H "Content-Type: application/json" \
+            -d '{"email": "test@flyseats.com", "password": "test123"}' \
+            -f -s | grep -q "message" && echo "✅ Login endpoint working"
