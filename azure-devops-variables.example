@@ -1,0 +1,29 @@
+# Ejemplo de Variables para Azure DevOps Variable Group
+# Crear Variable Group: "FlysSeats-Backend-Config"
+
+# Cosmos DB Configuration
+COSMOS_ENDPOINT=https://flyseats2-dev-cosmos.documents.azure.com:443/
+COSMOS_KEY=<OBTENER_DE_AZURE_PORTAL>  # Marcar como secret
+COSMOS_DATABASE=flyseats2-db
+
+# Amadeus API Configuration
+AMADEUS_API_KEY=<OBTENER_DE_KEY_VAULT>  # Marcar como secret
+AMADEUS_API_SECRET=<OBTENER_DE_KEY_VAULT>  # Marcar como secret
+
+# Azure Key Vault
+KEY_VAULT_URL=https://flyseats2-dev-kv.vault.azure.net/
+
+# Azure Resources
+RESOURCE_GROUP=flyseats2-dev-rg
+APP_SERVICE_NAME=flyseats2-dev-api
+STORAGE_ACCOUNT=flyseats2devdata
+
+## Obtener valores reales:
+
+### Cosmos DB
+# az cosmosdb show --name flyseats2-dev-cosmos --resource-group flyseats2-dev-rg --query documentEndpoint -o tsv
+# az cosmosdb keys list --name flyseats2-dev-cosmos --resource-group flyseats2-dev-rg --query primaryMasterKey -o tsv
+
+### Amadeus API (desde Key Vault)
+# az keyvault secret show --vault-name flyseats2-dev-kv --name amadeus-api-key --query value -o tsv
+# az keyvault secret show --vault-name flyseats2-dev-kv --name amadeus-api-secret --query value -o tsv
