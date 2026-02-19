@@ -147,9 +147,9 @@
               <mat-icon>flight_class</mat-icon>
               <span>{{ flight.travelerPricings?.[0]?.fareDetailsBySegment?.[0]?.cabin || 'Economy' }}</span>
             </div>
-            <div class="stat" *ngIf="flight.itineraries?.[0]?.segments && flight.itineraries[0].segments.length > 1">
+            <div class="stat" *ngIf="flight.itineraries?.[0]?.segments && flight.itineraries?.[0]?.segments?.length > 1">
               <mat-icon>connecting_airports</mat-icon>
-              <span>{{ flight.itineraries[0].segments.length - 1 }} escala(s)</span>
+              <span>{{ flight.itineraries?.[0]?.segments?.length - 1 }} escala(s)</span>
             </div>
             <div class="stat" *ngIf="!flight.itineraries?.[0]?.segments || flight.itineraries?.[0]?.segments?.length === 1">
               <mat-icon>check_circle</mat-icon>

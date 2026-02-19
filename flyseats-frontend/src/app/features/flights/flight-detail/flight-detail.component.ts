@@ -110,7 +110,8 @@ export class FlightDetailComponent implements OnInit {
     }
   }
 
-  formatDate(date: string): string {
+  formatDate(date: string | undefined): string {
+    if (!date) return '';
     const d = new Date(date);
     return d.toLocaleDateString('es-ES', { 
       weekday: 'short', 
