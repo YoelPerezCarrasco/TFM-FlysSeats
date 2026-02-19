@@ -14,6 +14,8 @@ import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatMenuModule } from '@angular/material/menu';
+import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatDividerModule } from '@angular/material/divider';
 
 import { AuthInterceptor } from './core/interceptors/auth.interceptor';
 
@@ -35,6 +37,8 @@ export function HttpLoaderFactory(http: HttpClient) {
     MatButtonModule,
     MatIconModule,
     MatMenuModule,
+    MatTooltipModule,
+    MatDividerModule,
     TranslateModule.forRoot({
       defaultLanguage: 'en',
       loader: {

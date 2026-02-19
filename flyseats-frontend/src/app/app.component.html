@@ -1,44 +1,175 @@
-<mat-toolbar color="primary">
-  <button mat-icon-button [matMenuTriggerFor]="menu" aria-label="Menu">
-    <mat-icon>menu</mat-icon>
-  </button>
-  <span>{{ 'app.title' | translate }}</span>
-  <span class="spacer"></span>
-  
-  <button mat-button [matMenuTriggerFor]="langMenu">
+<!-- Modern Navigation -->
+<nav class="modern-navbar" [class.scrolled]="isScrolled">
+  <div class="nav-container">
+    <!-- Logo -->
+    <div class="logo" routerLink="/flights">
+      <div class="logo-icon">
+        <mat-icon>flight</mat-icon>
+      </div>
+      <span class="logo-text">
+        <span class="logo-primary">Flys</span><span class="logo-accent">Seats</span>
+      </span>
+    </div>
+
+    <!-- Desktop Menu -->
+    <div class="nav-menu desktop-only">
+      <a routerLink="/flights" routerLinkActive="active" class="nav-link">
+        <mat-icon>search</mat-icon>
+        <span>Buscar Vuelos</span>
+      </a>
+      <a routerLink="/flights/create" class="nav-link">
+        <mat-icon>add_circle_outline</mat-icon>
+        <span>Crear Vuelo</span>
+      </a>
+      <a routerLink="/bookings" *ngIf="currentUser$ | async" routerLinkActive="active" class="nav-link">
+        <mat-icon>confirmation_number</mat-icon>
+        <span>Mis Reservas</span>
+      </a>
+    </div>
+
+    <!-- Right Section -->
+    <div class="nav-actions">
+      <!-- Language Selector -->
+      <button mat-icon-button [matMenuTriggerFor]="langMenu" class="icon-button" matTooltip="Idioma">
+        <mat-icon>language</mat-icon>
+      </button>
+
+      <!-- User Menu -->
+      <div *ngIf="currentUser$ | async as user; else loginButton" class="user-menu">
+        <button mat-button [matMenuTriggerFor]="userMenu" class="user-button">
+          <div class="avatar">
+            <mat-icon>person</mat-icon>
+          </div>
+          <span class="user-name desktop-only">{{ user.displayName || 'Usuario' }}</span>
+          <mat-icon class="dropdown-icon">arrow_drop_down</mat-icon>
+        </button>
+      </div>
+
+      <ng-template #loginButton>
+        <button mat-raised-button color="primary" routerLink="/auth/login" class="login-btn">
+          <mat-icon>login</mat-icon>
+          <span>Iniciar Sesión</span>
+        </button>
+      </ng-template>
+
+      <!-- Mobile Menu Toggle -->
+      <button mat-icon-button class="mobile-menu-btn mobile-only" (click)="toggleMobileMenu()">
+        <mat-icon>{{ mobileMenuOpen ? 'close' : 'menu' }}</mat-icon>
+      </button>
+    </div>
+  </div>
+</nav>
+
+<!-- Mobile Menu Overlay -->
+<div class="mobile-menu-overlay" [class.open]="mobileMenuOpen" (click)="closeMobileMenu()"></div>
+
+<!-- Mobile Menu -->
+<div class="mobile-menu" [class.open]="mobileMenuOpen">
+  <div class="mobile-menu-header">
+    <div class="logo-mobile">
+      <div class="logo-icon">
+        <mat-icon>flight</mat-icon>
+      </div>
+      <span class="logo-text">
+        <span class="logo-primary">Flys</span><span class="logo-accent">Seats</span>
+      </span>
+    </div>
+    <button mat-icon-button (click)="closeMobileMenu()">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+
+  <div class="mobile-menu-content">
+    <a routerLink="/flights" routerLinkActive="active" class="mobile-nav-link" (click)="closeMobileMenu()">
+      <mat-icon>search</mat-icon>
+      <span>Buscar Vuelos</span>
+      <mat-icon class="arrow">chevron_right</mat-icon>
+    </a>
+    <a routerLink="/flights/create" class="mobile-nav-link" (click)="closeMobileMenu()">
+      <mat-icon>add_circle_outline</mat-icon>
+      <span>Crear Vuelo</span>
+      <mat-icon class="arrow">chevron_right</mat-icon>
+    </a>
+    <a routerLink="/bookings" *ngIf="currentUser$ | async" routerLinkActive="active" class="mobile-nav-link" (click)="closeMobileMenu()">
+      <mat-icon>confirmation_number</mat-icon>
+      <span>Mis Reservas</span>
+      <mat-icon class="arrow">chevron_right</mat-icon>
+    </a>
+
+    <div class="mobile-divider"></div>
+
+    <div *ngIf="currentUser$ | async as user; else mobileLogin" class="mobile-user-section">
+      <div class="mobile-user-info">
+        <div class="avatar-large">
+          <mat-icon>person</mat-icon>
+        </div>
+        <div class="user-details">
+          <div class="user-name">{{ user.displayName || 'Usuario' }}</div>
+          <div class="user-email">{{ user.email }}</div>
+        </div>
+      </div>
+      <a class="mobile-nav-link" (click)="logout(); closeMobileMenu()">
+        <mat-icon>logout</mat-icon>
+        <span>Cerrar Sesión</span>
+        <mat-icon class="arrow">chevron_right</mat-icon>
+      </a>
+    </div>
+
+    <ng-template #mobileLogin>
+      <a routerLink="/auth/login" class="mobile-nav-link primary" (click)="closeMobileMenu()">
+        <mat-icon>login</mat-icon>
+        <span>Iniciar Sesión</span>
+        <mat-icon class="arrow">chevron_right</mat-icon>
+      </a>
+    </ng-template>
+  </div>
+</div>
+
+<!-- Language Menu -->
+<mat-menu #langMenu="matMenu" class="custom-menu">
+  <button mat-menu-item (click)="switchLanguage('en')">
     <mat-icon>language</mat-icon>
+    <span>English</span>
   </button>
-  
-  <button mat-button routerLink="/flights">{{ 'menu.flights' | translate }}</button>
-  <button mat-button routerLink="/bookings" *ngIf="currentUser$ | async">{{ 'menu.bookings' | translate }}</button>
-  <button mat-button routerLink="/auth/login" *ngIf="!(currentUser$ | async)">{{ 'menu.login' | translate }}</button>
-  <button mat-button (click)="logout()" *ngIf="currentUser$ | async">{{ 'menu.logout' | translate }}</button>
-</mat-toolbar>
+  <button mat-menu-item (click)="switchLanguage('es')">
+    <mat-icon>language</mat-icon>
+    <span>Español</span>
+  </button>
+</mat-menu>
 
-<mat-menu #menu="matMenu">
-  <button mat-menu-item routerLink="/flights">
-    <mat-icon>flight</mat-icon>
-    <span>{{ 'menu.flights' | translate }}</span>
+<!-- User Menu -->
+<mat-menu #userMenu="matMenu" class="custom-menu user-dropdown">
+  <div class="menu-header">
+    <div class="avatar-menu">
+      <mat-icon>person</mat-icon>
+    </div>
+    <div class="user-info">
+      <div class="name">{{ (currentUser$ | async)?.displayName || 'Usuario' }}</div>
+      <div class="email">{{ (currentUser$ | async)?.email }}</div>
+    </div>
+  </div>
+  <mat-divider></mat-divider>
+  <button mat-menu-item routerLink="/profile">
+    <mat-icon>account_circle</mat-icon>
+    <span>Mi Perfil</span>
   </button>
-  <button mat-menu-item routerLink="/bookings" *ngIf="currentUser$ | async">
-    <mat-icon>book</mat-icon>
-    <span>{{ 'menu.bookings' | translate }}</span>
+  <button mat-menu-item routerLink="/bookings">
+    <mat-icon>confirmation_number</mat-icon>
+    <span>Mis Reservas</span>
   </button>
-  <button mat-menu-item routerLink="/auth/login" *ngIf="!(currentUser$ | async)">
-    <mat-icon>login</mat-icon>
-    <span>{{ 'menu.login' | translate }}</span>
+  <button mat-menu-item>
+    <mat-icon>settings</mat-icon>
+    <span>Configuración</span>
   </button>
-  <button mat-menu-item (click)="logout()" *ngIf="currentUser$ | async">
+  <mat-divider></mat-divider>
+  <button mat-menu-item (click)="logout()">
     <mat-icon>logout</mat-icon>
-    <span>{{ 'menu.logout' | translate }}</span>
+    <span>Cerrar Sesión</span>
   </button>
 </mat-menu>
 
-<mat-menu #langMenu="matMenu">
-  <button mat-menu-item (click)="switchLanguage('en')">English</button>
-  <button mat-menu-item (click)="switchLanguage('es')">Español</button>
-</mat-menu>
+<!-- Main Content -->
 
-<div class="content">
+<div class="main-content">
   <router-outlet></router-outlet>
 </div>

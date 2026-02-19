@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, HostListener } from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
 import { AuthService, User } from './core/services/auth.service';
 import { Observable } from 'rxjs';
@@ -11,6 +11,8 @@ import { Observable } from 'rxjs';
 export class AppComponent implements OnInit {
   title = 'flyseats-frontend';
   currentUser$: Observable<User | null>;
+  isScrolled = false;
+  mobileMenuOpen = false;
 
   constructor(
     private translate: TranslateService,
@@ -23,11 +25,30 @@ export class AppComponent implements OnInit {
 
   ngOnInit(): void {}
 
+  @HostListener('window:scroll', [])
+  onWindowScroll(): void {
+    this.isScrolled = window.pageYOffset > 20;
+  }
+
   switchLanguage(lang: string): void {
     this.translate.use(lang);
   }
 
   logout(): void {
     this.authService.logout();
+  }
+
+  toggleMobileMenu(): void {
+    this.mobileMenuOpen = !this.mobileMenuOpen;
+    if (this.mobileMenuOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+  }
+
+  closeMobileMenu(): void {
+    this.mobileMenuOpen = false;
+    document.body.style.overflow = '';
   }
 }
