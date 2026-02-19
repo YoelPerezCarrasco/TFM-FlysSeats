@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, of } from 'rxjs';
-import { tap, catchError } from 'rxjs/operators';
+import { tap, catchError, map } from 'rxjs/operators';
 import { CacheService } from './cache.service';
 import { environment } from '../../../environments/environment';
 import { 
@@ -52,7 +52,7 @@ export class FlightService {
     }
 
     return this.http.get<Flight[]>(this.API_URL, { params: httpParams }).pipe(
-      tap(flights => this.cacheService.set(cacheKey, flights, this.CACHE_TTL)),
+      tap(flights => this.cacheService.set(cacheKey, flights)),
       catchError(error => {
         console.error('Error searching flights:', error);
         return of([]);
@@ -111,12 +111,11 @@ export class FlightService {
       tap(() => {
         this.clearCache();
       }),
+      map(() => true),
       catchError(error => {
         console.error('Error deleting flight:', error);
         return of(false);
       })
-    ).pipe(
-      tap(() => true)
     );
   }
 

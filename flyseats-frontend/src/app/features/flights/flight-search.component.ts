@@ -398,8 +398,3 @@ export class FlightSearchComponent implements OnInit {
     return `${year}-${month}-${day}`;
   }
 }
-        }
-      });
-    }
-  }
-}
