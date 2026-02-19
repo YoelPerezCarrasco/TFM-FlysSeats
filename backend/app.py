@@ -145,6 +145,89 @@ def search_flights():
         logger.error(f"Error buscando vuelos: {str(e)}")
         return jsonify({'error': 'Error buscando vuelos'}), 500
 
+@app.route('/api/flights', methods=['GET', 'POST'])
+def flights():
+    """Get all flights or create a new flight"""
+    try:
+        if request.method == 'GET':
+            # Search flights from Cosmos DB
+            search_params = {}
+            
+            flight_number = request.args.get('flight_number')
+            departure_code = request.args.get('departure_code')
+            arrival_code = request.args.get('arrival_code')
+            date_param = request.args.get('date')
+            
+            if flight_number:
+                search_params['flight_number'] = flight_number
+            if departure_code:
+                search_params['departure_code'] = departure_code
+            if arrival_code:
+                search_params['arrival_code'] = arrival_code
+            if date_param:
+                search_params['date'] = date_param
+            
+            flights_list = cosmos_client.search_flights(search_params)
+            
+            return jsonify(flights_list), 200
+        
+        elif request.method == 'POST':
+            # Create new flight
+            data = request.get_json()
+            
+            # Validate required fields
+            required_fields = ['flight_number', 'departure_code', 'arrival_code', 'departure_time', 'arrival_time']
+            if not all(field in data for field in required_fields):
+                return jsonify({'error': 'Missing required fields'}), 400
+            
+            # Create flight in Cosmos DB
+            flight_id = cosmos_client.create_flight(data)
+            
+            return jsonify({
+                'message': 'Flight created successfully',
+                'flight_id': flight_id
+            }), 201
+            
+    except Exception as e:
+        logger.error(f"Error processing flights request: {str(e)}")
+        return jsonify({'error': 'Error interno del servidor'}), 500
+
+@app.route('/api/flights/<flight_id>', methods=['GET', 'PUT', 'DELETE'])
+def flight_detail(flight_id):
+    """Get, update or delete a specific flight"""
+    try:
+        if request.method == 'GET':
+            # Get flight by ID
+            flight = cosmos_client.get_flight_by_id(flight_id)
+            
+            if not flight:
+                return jsonify({'error': 'Flight not found'}), 404
+            
+            return jsonify(flight), 200
+            
+        elif request.method == 'PUT':
+            # Update flight
+            data = request.get_json()
+            success = cosmos_client.update_flight(flight_id, data)
+            
+            if not success:
+                return jsonify({'error': 'Flight not found or could not be updated'}), 404
+            
+            return jsonify({'message': 'Flight updated successfully'}), 200
+            
+        elif request.method == 'DELETE':
+            # Delete flight
+            success = cosmos_client.delete_flight(flight_id)
+            
+            if not success:
+                return jsonify({'error': 'Flight not found or could not be deleted'}), 404
+            
+            return jsonify({'message': 'Flight deleted successfully'}), 200
+            
+    except Exception as e:
+        logger.error(f"Error processing flight detail request: {str(e)}")
+        return jsonify({'error': 'Error interno del servidor'}), 500
+
 # ============================================
 # RUTAS - BOOKINGS
 # ============================================

@@ -47,10 +47,7 @@ export class FlightSearchComponent implements OnInit {
     private router: Router
   ) {
     this.searchForm = this.fb.group({
-      flight_number: [''],
-      departure_code: [''],
-      arrival_code: [''],
-      date: ['']
+      flight_number: ['']
     });
   }
 
@@ -65,6 +62,7 @@ export class FlightSearchComponent implements OnInit {
       next: (flights) => {
         this.flights = flights;
         this.loading = false;
+        this.searchPerformed = true;
       },
       error: (error) => {
         console.error('Error loading flights:', error);
@@ -73,25 +71,61 @@ export class FlightSearchComponent implements OnInit {
     });
   }
 
+  onFlightNumberInput(): void {
+    const flightNumber = this.searchForm.get('flight_number')?.value;
+    if (flightNumber && flightNumber.length >= 2) {
+      // Auto-search as user types
+      this.onSearch();
+    } else if (!flightNumber) {
+      this.loadAllFlights();
+    }
+  }
+
+  clearSearch(): void {
+    this.searchForm.patchValue({ flight_number: '' });
+    this.loadAllFlights();
+  }
+
+  quickSearch(departure: string, arrival: string): void {
+    this.loading = true;
+    this.searchPerformed = true;
+    
+    const params: FlightSearchParams = {
+      departure_code: departure,
+      arrival_code: arrival
+    };
+    
+    this.flightService.searchFlights(params).subscribe({
+      next: (flights) => {
+        this.flights = flights;
+        this.loading = false;
+      },
+      error: (error) => {
+        console.error('Quick search failed:', error);
+        this.loading = false;
+      }
+    });
+  }
+
+  showAllFlights(): void {
+    this.searchForm.patchValue({ flight_number: '' });
+    this.loadAllFlights();
+  }
+
   onSearch(): void {
     this.loading = true;
     this.searchPerformed = true;
     
-    const formValue = this.searchForm.value;
-    const params: FlightSearchParams = {};
+    const flightNumber = this.searchForm.get('flight_number')?.value;
     
-    if (formValue.flight_number) {
-      params.flight_number = formValue.flight_number.toUpperCase();
+    if (!flightNumber || flightNumber.trim() === '') {
+      this.loadAllFlights();
+      return;
     }
-    if (formValue.departure_code) {
-      params.departure_code = formValue.departure_code.toUpperCase();
-    }
-    if (formValue.arrival_code) {
-      params.arrival_code = formValue.arrival_code.toUpperCase();
-    }
-    if (formValue.date) {
-      params.date = this.formatDate(formValue.date);
-    }
+    
+    const params: FlightSearchParams = {
+      flight_number: flightNumber.toUpperCase().trim()
+    };
     
     this.flightService.searchFlights(params).subscribe({
       next: (flights) => {
