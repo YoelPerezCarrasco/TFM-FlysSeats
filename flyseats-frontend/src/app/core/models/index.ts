@@ -64,19 +64,109 @@ export interface Aircraft {
 }
 
 export interface Flight {
+  // Legacy FlysSeats properties
   id: string;
   type: string;
-  flight_number: string;
-  airline: string;
-  departure: Airport;
-  arrival: Airport;
+  flight_number?: string;
+  airline?: string;
+  departure?: Airport;
+  arrival?: Airport;
   aircraft?: Aircraft;
-  created_by: string;
-  participants_count: number;
-  active_swaps_count: number;
-  status: FlightStatus;
-  created_at: string;
-  updated_at: string;
+  created_by?: string;
+  participants_count?: number;
+  active_swaps_count?: number;
+  status?: FlightStatus;
+  created_at?: string;
+  updated_at?: string;
+  
+  // Amadeus API properties
+  instantTicketingRequired?: boolean;
+  isUpsellOffer?: boolean;
+  itineraries?: Array<{
+    duration: string;
+    segments: Array<{
+      departure: {
+        iataCode: string;
+        terminal?: string;
+        at: string;
+      };
+      arrival: {
+        iataCode: string;
+        terminal?: string;
+        at: string;
+      };
+      carrierCode: string;
+      number: string;
+      aircraft?: {
+        code: string;
+      };
+      operating?: {
+        carrierCode?: string;
+        carrierName?: string;
+      };
+      duration: string;
+      id: string;
+      numberOfStops: number;
+      blacklistedInEU: boolean;
+    }>;
+  }>;
+  price?: {
+    currency: string;
+    total: string;
+    base: string;
+    fees?: Array<{
+      amount: string;
+      type: string;
+    }>;
+    grandTotal?: string;
+    additionalServices?: Array<{
+      amount: string;
+      type: string;
+    }>;
+  };
+  pricingOptions?: {
+    fareType: string[];
+    includedCheckedBagsOnly: boolean;
+  };
+  validatingAirlineCodes?: string[];
+  travelerPricings?: Array<{
+    travelerId: string;
+    fareOption: string;
+    travelerType: string;
+    price?: {
+      currency: string;
+      total: string;
+      base: string;
+    };
+    fareDetailsBySegment?: Array<{
+      segmentId: string;
+      cabin?: string;
+      class?: string;
+      fareBasis?: string;
+      brandedFare?: string;
+      brandedFareLabel?: string;
+      includedCheckedBags?: {
+        quantity: number;
+      };
+      includedCabinBags?: {
+        quantity: number;
+      };
+      amenities?: Array<{
+        description: string;
+        isChargeable: boolean;
+        amenityType: string;
+        amenityProvider?: {
+          name: string;
+        };
+      }>;
+    }>;
+  }>;
+  lastTicketingDate?: string;
+  lastTicketingDateTime?: string;
+  nonHomogeneous?: boolean;
+  numberOfBookableSeats?: number;
+  oneWay?: boolean;
+  source?: string;
 }
 
 export interface FlightSearchParams {
