@@ -8,5 +8,6 @@
     "logLevel": {
       "default": "Information"
     }
-  }
+  },
+  "functionTimeout": "00:05:00"
 }
