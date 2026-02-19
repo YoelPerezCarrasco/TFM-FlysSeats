@@ -9,9 +9,9 @@ import { MatChipsModule } from '@angular/material/chips';
 import { MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { TranslateModule } from '@ngx-translate/core';
-import { FlightService } from '../../core/services/flight.service';
-import { SeatService } from '../../core/services/seat.service';
-import { Flight, Seat } from '../../core/models';
+import { FlightService } from '../../../core/services/flight.service';
+import { SeatService } from '../../../core/services/seat.service';
+import { Flight, Seat } from '../../../core/models';
 
 @Component({
   selector: 'app-flight-detail',

@@ -12,8 +12,8 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatIconModule } from '@angular/material/icon';
 import { MatChipsModule } from '@angular/material/chips';
 import { TranslateModule } from '@ngx-translate/core';
-import { FlightService } from '../../core/services/flight.service';
-import { Flight, FlightSearchParams } from '../../core/models';
+import { FlightService } from '../../../core/services/flight.service';
+import { Flight, FlightSearchParams } from '../../../core/models';
 
 @Component({
   selector: 'app-flight-search',

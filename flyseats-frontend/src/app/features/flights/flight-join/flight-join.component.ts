@@ -13,9 +13,9 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { TranslateModule } from '@ngx-translate/core';
-import { FlightService } from '../../core/services/flight.service';
-import { SeatService } from '../../core/services/seat.service';
-import { Flight, JoinFlightRequest, SeatType, SeatSection } from '../../core/models';
+import { FlightService } from '../../../core/services/flight.service';
+import { SeatService } from '../../../core/services/seat.service';
+import { Flight, JoinFlightRequest, SeatType, SeatSection } from '../../../core/models';
 
 @Component({
   selector: 'app-flight-join',

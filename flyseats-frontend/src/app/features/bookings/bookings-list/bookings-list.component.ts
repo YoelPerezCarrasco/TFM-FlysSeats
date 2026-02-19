@@ -5,7 +5,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { TranslateModule } from '@ngx-translate/core';
-import { BookingService, Booking } from '../../core/services/booking.service';
+import { BookingService, Booking } from '../../../core/services/booking.service';
 
 @Component({
   selector: 'app-bookings-list',
