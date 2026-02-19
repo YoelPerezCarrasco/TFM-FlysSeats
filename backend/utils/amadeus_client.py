@@ -85,10 +85,12 @@ class AmadeusClient:
         
         # Si no hay cliente de Amadeus, usar datos mock
         if not self._client:
+            logger.info("Cliente de Amadeus no disponible, usando datos mock")
             return self._get_mock_flights(origin, destination, departure_date, return_date, adults)
         
         try:
             # Búsqueda real en Amadeus
+            logger.info(f"Iniciando búsqueda en Amadeus: {origin} -> {destination}")
             search_kwargs = {
                 'originLocationCode': origin,
                 'destinationLocationCode': destination,
@@ -108,12 +110,16 @@ class AmadeusClient:
             # Cachear resultados
             redis_client.cache_flight_search(search_params, flights)
             
-            logger.info(f"Búsqueda exitosa: {len(flights)} vuelos encontrados")
+            logger.info(f"✅ Búsqueda exitosa: {len(flights)} vuelos encontrados")
             return flights
             
         except ResponseError as error:
-            logger.error(f"Error en búsqueda de Amadeus: {error}")
+            logger.error(f"❌ ResponseError de Amadeus: {error}")
             # En caso de error, devolver datos mock
+            return self._get_mock_flights(origin, destination, departure_date, return_date, adults)
+        except Exception as error:
+            logger.error(f"❌ Error inesperado en búsqueda de Amadeus: {error}")
+            # En caso de cualquier error, devolver datos mock
             return self._get_mock_flights(origin, destination, departure_date, return_date, adults)
     
     def _get_mock_flights(

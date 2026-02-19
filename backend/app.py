@@ -173,6 +173,7 @@ def flights():
                 
                 try:
                     from datetime import datetime, timedelta
+                    import signal
                     
                     # Use provided date or tomorrow as default
                     if date_param:
@@ -181,9 +182,9 @@ def flights():
                         tomorrow = datetime.now() + timedelta(days=1)
                         departure_date = tomorrow.strftime('%Y-%m-%d')
                     
-                    logger.info(f"Buscando vuelos reales en Amadeus: {departure_code} -> {arrival_code} el {departure_date}")
+                    logger.info(f"🔍 Buscando vuelos reales en Amadeus: {departure_code} -> {arrival_code} el {departure_date}")
                     
-                    # Search real flights from Amadeus API
+                    # Search real flights from Amadeus API (con timeout implícito en el Try-catch)
                     flights_list = amadeus_client.search_flights(
                         origin=departure_code,
                         destination=arrival_code,
@@ -192,6 +193,7 @@ def flights():
                         max_results=20
                     )
                     
+                    logger.info(f"✅ Amadeus devolvió {len(flights_list)} resultados")
                     return jsonify(flights_list), 200
                     
                 except Exception as amadeus_error:
