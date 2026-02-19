@@ -158,27 +158,54 @@ def flights():
             
             # If searching by route (departure_code AND arrival_code), use Amadeus API
             if departure_code and arrival_code:
-                from datetime import datetime, timedelta
+                # Verificar que amadeus_client está disponible
+                if not amadeus_client:
+                    logger.warning("Amadeus client no disponible, buscando en Cosmos DB")
+                    search_params = {
+                        'departure_code': departure_code,
+                        'arrival_code': arrival_code
+                    }
+                    if date_param:
+                        search_params['date'] = date_param
+                    
+                    flights_list = cosmos_client.search_flights(search_params)
+                    return jsonify(flights_list), 200
                 
-                # Use provided date or tomorrow as default
-                if date_param:
-                    departure_date = date_param
-                else:
-                    tomorrow = datetime.now() + timedelta(days=1)
-                    departure_date = tomorrow.strftime('%Y-%m-%d')
-                
-                logger.info(f"Buscando vuelos reales en Amadeus: {departure_code} -> {arrival_code} el {departure_date}")
-                
-                # Search real flights from Amadeus API
-                flights_list = amadeus_client.search_flights(
-                    origin=departure_code,
-                    destination=arrival_code,
-                    departure_date=departure_date,
-                    adults=1,
-                    max_results=20
-                )
-                
-                return jsonify(flights_list), 200
+                try:
+                    from datetime import datetime, timedelta
+                    
+                    # Use provided date or tomorrow as default
+                    if date_param:
+                        departure_date = date_param
+                    else:
+                        tomorrow = datetime.now() + timedelta(days=1)
+                        departure_date = tomorrow.strftime('%Y-%m-%d')
+                    
+                    logger.info(f"Buscando vuelos reales en Amadeus: {departure_code} -> {arrival_code} el {departure_date}")
+                    
+                    # Search real flights from Amadeus API
+                    flights_list = amadeus_client.search_flights(
+                        origin=departure_code,
+                        destination=arrival_code,
+                        departure_date=departure_date,
+                        adults=1,
+                        max_results=20
+                    )
+                    
+                    return jsonify(flights_list), 200
+                    
+                except Exception as amadeus_error:
+                    logger.error(f"Error en búsqueda de Amadeus: {str(amadeus_error)}")
+                    # Fallback: buscar en Cosmos DB
+                    search_params = {
+                        'departure_code': departure_code,
+                        'arrival_code': arrival_code
+                    }
+                    if date_param:
+                        search_params['date'] = date_param
+                    
+                    flights_list = cosmos_client.search_flights(search_params)
+                    return jsonify(flights_list), 200
             
             # Otherwise, search in Cosmos DB
             search_params = {}
