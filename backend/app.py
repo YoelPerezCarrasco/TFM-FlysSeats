@@ -150,13 +150,38 @@ def flights():
     """Get all flights or create a new flight"""
     try:
         if request.method == 'GET':
-            # Search flights from Cosmos DB
-            search_params = {}
-            
+            # Get query parameters
             flight_number = request.args.get('flight_number')
             departure_code = request.args.get('departure_code')
             arrival_code = request.args.get('arrival_code')
             date_param = request.args.get('date')
+            
+            # If searching by route (departure_code AND arrival_code), use Amadeus API
+            if departure_code and arrival_code:
+                from datetime import datetime, timedelta
+                
+                # Use provided date or tomorrow as default
+                if date_param:
+                    departure_date = date_param
+                else:
+                    tomorrow = datetime.now() + timedelta(days=1)
+                    departure_date = tomorrow.strftime('%Y-%m-%d')
+                
+                logger.info(f"Buscando vuelos reales en Amadeus: {departure_code} -> {arrival_code} el {departure_date}")
+                
+                # Search real flights from Amadeus API
+                flights_list = amadeus_client.search_flights(
+                    origin=departure_code,
+                    destination=arrival_code,
+                    departure_date=departure_date,
+                    adults=1,
+                    max_results=20
+                )
+                
+                return jsonify(flights_list), 200
+            
+            # Otherwise, search in Cosmos DB
+            search_params = {}
             
             if flight_number:
                 search_params['flight_number'] = flight_number
