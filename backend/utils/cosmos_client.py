@@ -165,6 +165,227 @@ class CosmosDBClient:
             logger.error(f"Error cancelando reserva {booking_id}: {e}")
             return False
     
+    # ==================== FLIGHTS ====================
+    
+    def get_flight(self, flight_id: str) -> Optional[Dict]:
+        """Obtiene un vuelo por ID"""
+        try:
+            container = self.get_container('flights')
+            flight = container.read_item(item=flight_id, partition_key=flight_id)
+            return flight
+        except exceptions.CosmosResourceNotFoundError:
+            return None
+        except Exception as e:
+            logger.error(f"Error obteniendo vuelo {flight_id}: {e}")
+            return None
+    
+    def create_flight(self, flight_data: Dict) -> Dict:
+        """Crea un nuevo vuelo"""
+        try:
+            container = self.get_container('flights')
+            flight = container.create_item(body=flight_data)
+            logger.info(f"Vuelo creado: {flight['id']}")
+            return flight
+        except Exception as e:
+            logger.error(f"Error creando vuelo: {e}")
+            raise
+    
+    def update_flight(self, flight_id: str, flight_data: Dict) -> Dict:
+        """Actualiza un vuelo"""
+        try:
+            container = self.get_container('flights')
+            flight_data['id'] = flight_id
+            flight = container.upsert_item(body=flight_data)
+            logger.info(f"Vuelo actualizado: {flight_id}")
+            return flight
+        except Exception as e:
+            logger.error(f"Error actualizando vuelo {flight_id}: {e}")
+            raise
+    
+    def search_flights(self, search_params: Dict) -> List[Dict]:
+        """Busca vuelos por parámetros"""
+        try:
+            container = self.get_container('flights')
+            
+            # Build query
+            query_parts = ["SELECT * FROM c WHERE c.type = 'flight'"]
+            parameters = []
+            
+            if search_params.get('flight_number'):
+                query_parts.append("AND c.flight_number = @flight_number")
+                parameters.append({"name": "@flight_number", "value": search_params['flight_number']})
+            
+            if search_params.get('departure_code'):
+                query_parts.append("AND c.departure.airport_code = @departure_code")
+                parameters.append({"name": "@departure_code", "value": search_params['departure_code']})
+            
+            if search_params.get('arrival_code'):
+                query_parts.append("AND c.arrival.airport_code = @arrival_code")
+                parameters.append({"name": "@arrival_code", "value": search_params['arrival_code']})
+            
+            if search_params.get('date'):
+                query_parts.append("AND c.departure.date = @date")
+                parameters.append({"name": "@date", "value": search_params['date']})
+            
+            query = " ".join(query_parts) + " ORDER BY c.departure.date ASC"
+            
+            items = list(container.query_items(
+                query=query,
+                parameters=parameters,
+                enable_cross_partition_query=True
+            ))
+            
+            return items
+        except Exception as e:
+            logger.error(f"Error buscando vuelos: {e}")
+            return []
+    
+    def get_flight_exists(self, flight_number: str, date: str, departure_code: str) -> bool:
+        """Verifica si ya existe un vuelo con los mismos datos"""
+        try:
+            container = self.get_container('flights')
+            query = """
+                SELECT * FROM c 
+                WHERE c.flight_number = @flight_number 
+                AND c.departure.date = @date 
+                AND c.departure.airport_code = @departure_code
+            """
+            parameters = [
+                {"name": "@flight_number", "value": flight_number},
+                {"name": "@date", "value": date},
+                {"name": "@departure_code", "value": departure_code}
+            ]
+            
+            items = list(container.query_items(
+                query=query,
+                parameters=parameters,
+                enable_cross_partition_query=True
+            ))
+            
+            return len(items) > 0
+        except Exception as e:
+            logger.error(f"Error verificando existencia de vuelo: {e}")
+            return False
+    
+    def delete_flight(self, flight_id: str) -> bool:
+        """Elimina un vuelo"""
+        try:
+            container = self.get_container('flights')
+            container.delete_item(item=flight_id, partition_key=flight_id)
+            logger.info(f"Vuelo eliminado: {flight_id}")
+            return True
+        except Exception as e:
+            logger.error(f"Error eliminando vuelo {flight_id}: {e}")
+            return False
+    
+    # ==================== SEATS ====================
+    
+    def get_seat(self, seat_id: str) -> Optional[Dict]:
+        """Obtiene un asiento por ID"""
+        try:
+            container = self.get_container('seats')
+            seat = container.read_item(item=seat_id, partition_key=seat_id)
+            return seat
+        except exceptions.CosmosResourceNotFoundError:
+            return None
+        except Exception as e:
+            logger.error(f"Error obteniendo asiento {seat_id}: {e}")
+            return None
+    
+    def create_seat(self, seat_data: Dict) -> Dict:
+        """Crea un nuevo asiento"""
+        try:
+            container = self.get_container('seats')
+            seat = container.create_item(body=seat_data)
+            logger.info(f"Asiento creado: {seat['id']}")
+            return seat
+        except Exception as e:
+            logger.error(f"Error creando asiento: {e}")
+            raise
+    
+    def update_seat(self, seat_id: str, seat_data: Dict) -> Dict:
+        """Actualiza un asiento"""
+        try:
+            container = self.get_container('seats')
+            seat_data['id'] = seat_id
+            seat = container.upsert_item(body=seat_data)
+            logger.info(f"Asiento actualizado: {seat_id}")
+            return seat
+        except Exception as e:
+            logger.error(f"Error actualizando asiento {seat_id}: {e}")
+            raise
+    
+    def get_flight_seats(self, flight_id: str) -> List[Dict]:
+        """Obtiene todos los asientos de un vuelo"""
+        try:
+            container = self.get_container('seats')
+            query = "SELECT * FROM c WHERE c.flight_id = @flight_id"
+            parameters = [{"name": "@flight_id", "value": flight_id}]
+            
+            items = list(container.query_items(
+                query=query,
+                parameters=parameters,
+                enable_cross_partition_query=True
+            ))
+            
+            return items
+        except Exception as e:
+            logger.error(f"Error obteniendo asientos del vuelo {flight_id}: {e}")
+            return []
+    
+    def get_user_seat_for_flight(self, user_id: str, flight_id: str) -> Optional[Dict]:
+        """Obtiene el asiento de un usuario en un vuelo específico"""
+        try:
+            container = self.get_container('seats')
+            query = "SELECT * FROM c WHERE c.user_id = @user_id AND c.flight_id = @flight_id"
+            parameters = [
+                {"name": "@user_id", "value": user_id},
+                {"name": "@flight_id", "value": flight_id}
+            ]
+            
+            items = list(container.query_items(
+                query=query,
+                parameters=parameters,
+                enable_cross_partition_query=True
+            ))
+            
+            return items[0] if items else None
+        except Exception as e:
+            logger.error(f"Error obteniendo asiento del usuario: {e}")
+            return None
+    
+    def get_seat_taken(self, flight_id: str, seat_number: str) -> bool:
+        """Verifica si un asiento ya está ocupado"""
+        try:
+            container = self.get_container('seats')
+            query = "SELECT * FROM c WHERE c.flight_id = @flight_id AND c.seat_number = @seat_number"
+            parameters = [
+                {"name": "@flight_id", "value": flight_id},
+                {"name": "@seat_number", "value": seat_number}
+            ]
+            
+            items = list(container.query_items(
+                query=query,
+                parameters=parameters,
+                enable_cross_partition_query=True
+            ))
+            
+            return len(items) > 0
+        except Exception as e:
+            logger.error(f"Error verificando disponibilidad de asiento: {e}")
+            return False
+    
+    def delete_seat(self, seat_id: str) -> bool:
+        """Elimina un asiento"""
+        try:
+            container = self.get_container('seats')
+            container.delete_item(item=seat_id, partition_key=seat_id)
+            logger.info(f"Asiento eliminado: {seat_id}")
+            return True
+        except Exception as e:
+            logger.error(f"Error eliminando asiento {seat_id}: {e}")
+            return False
+    
     # ==================== FLIGHT CACHE ====================
     
     def get_cached_flights(self, search_key: str) -> Optional[Dict]:
