@@ -40,7 +40,7 @@
           <div class="avatar">
             <mat-icon>person</mat-icon>
           </div>
-          <span class="user-name desktop-only">{{ user.displayName || 'Usuario' }}</span>
+          <span class="user-name desktop-only">{{ user.name || 'Usuario' }}</span>
           <mat-icon class="dropdown-icon">arrow_drop_down</mat-icon>
         </button>
       </div>
@@ -104,7 +104,7 @@
           <mat-icon>person</mat-icon>
         </div>
         <div class="user-details">
-          <div class="user-name">{{ user.displayName || 'Usuario' }}</div>
+          <div class="user-name">{{ user.name || 'Usuario' }}</div>
           <div class="user-email">{{ user.email }}</div>
         </div>
       </div>
@@ -144,7 +144,7 @@
       <mat-icon>person</mat-icon>
     </div>
     <div class="user-info">
-      <div class="name">{{ (currentUser$ | async)?.displayName || 'Usuario' }}</div>
+      <div class="name">{{ (currentUser$ | async)?.name || 'Usuario' }}</div>
       <div class="email">{{ (currentUser$ | async)?.email }}</div>
     </div>
   </div>

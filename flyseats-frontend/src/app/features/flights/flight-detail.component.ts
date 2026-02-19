@@ -160,12 +160,12 @@ import { Flight, Seat } from '../../core/models';
               </div>
               <div class="seat-details">
                 <div class="seat-type">
-                  <mat-icon>{{ getSeatIcon(seat.type) }}</mat-icon>
-                  {{ seat.type }}
+                  <mat-icon>{{ getSeatIcon(seat.seat_details.type) }}</mat-icon>
+                  {{ seat.seat_details.type }}
                 </div>
                 <div class="seat-section">
                   <mat-icon>view_column</mat-icon>
-                  {{ seat.section }}
+                  {{ seat.seat_details.section }}
                 </div>
               </div>
               <div class="swap-status">
