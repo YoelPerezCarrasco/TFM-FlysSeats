@@ -84,12 +84,12 @@
       <h2><span class="gradient-text">{{ flights.length }}</span> Vuelos Encontrados</h2>
       <div class="results-stats">
         <mat-chip>
-          <mat-icon>date_range</mat-icon>
-          Hoy
+          <mat-icon>schedule</mat-icon>
+          {{ flights[0]?.itineraries?.[0]?.segments?.[0]?.departure?.at | date:'dd MMM' }}
         </mat-chip>
         <mat-chip>
-          <mat-icon>trending_up</mat-icon>
-          Más populares
+          <mat-icon>flight_takeoff</mat-icon>
+          Vuelos directos
         </mat-chip>
       </div>
     </div>
@@ -98,56 +98,62 @@
       <mat-card *ngFor="let flight of flights; let i = index" 
                 class="flight-card" 
                 (click)="onFlightClick(flight)"
-                [style.animation-delay]="(i * 0.1) + 's'">
+                [style.animation-delay]="(i * 0.05) + 's'">
         <mat-card-header>
           <div class="flight-header">
             <div class="flight-number">
               <mat-icon class="airline-icon">flight</mat-icon>
               <div>
-                <h3>{{ flight.airline }}</h3>
-                <span class="flight-code">{{ flight.flight_number }}</span>
+                <h3>{{ getAirlineName(flight.validatingAirlineCodes?.[0]) }}</h3>
+                <span class="flight-code">{{ flight.itineraries?.[0]?.segments?.[0]?.carrierCode }} {{ flight.itineraries?.[0]?.segments?.[0]?.number }}</span>
               </div>
             </div>
-            <mat-chip [class]="'status-chip status-' + flight.status.toLowerCase()">
-              {{ flight.status }}
-            </mat-chip>
+            <div class="price-tag">
+              <span class="price">{{ flight.price?.total }}€</span>
+              <span class="price-label">por persona</span>
+            </div>
           </div>
         </mat-card-header>
         
         <mat-card-content>
           <div class="flight-route">
             <div class="airport">
-              <div class="airport-code">{{ flight.departure.airport_code }}</div>
-              <div class="airport-name">{{ flight.departure.city }}</div>
-              <div class="flight-time">{{ flight.departure.time }}</div>
+              <div class="airport-code">{{ flight.itineraries?.[0]?.segments?.[0]?.departure?.iataCode }}</div>
+              <div class="flight-time">{{ flight.itineraries?.[0]?.segments?.[0]?.departure?.at | date:'HH:mm' }}</div>
             </div>
             
             <div class="route-line">
-              <div class="plane-icon">
-                <mat-icon>flight</mat-icon>
+              <div class="duration-info">
+                <div class="plane-icon">
+                  <mat-icon>flight</mat-icon>
+                </div>
+                <div class="duration-text">{{ formatDuration(flight.itineraries?.[0]?.duration) }}</div>
               </div>
               <div class="duration-line"></div>
             </div>
             
             <div class="airport">
-              <div class="airport-code">{{ flight.arrival.airport_code }}</div>
-              <div class="airport-name">{{ flight.arrival.city }}</div>
-              <div class="flight-time">{{ flight.arrival.time }}</div>
+              <div class="airport-code">{{ getLastSegment(flight)?.arrival?.iataCode }}</div>
+              <div class="flight-time">{{ getLastSegment(flight)?.arrival?.at | date:'HH:mm' }}</div>
             </div>
           </div>
           
           <div class="flight-stats">
             <div class="stat">
-              <mat-icon>people</mat-icon>
-              <span>{{ flight.participants_count || 0 }} pasajeros</span>
+              <mat-icon>airline_seat_recline_normal</mat-icon>
+              <span>{{ flight.numberOfBookableSeats }} asientos</span>
             </div>
             <div class="stat">
-              <mat-icon>swap_horiz</mat-icon>
-              <span>{{ flight.active_swaps_count || 0 }} intercambios</span>
+              <mat-icon>flight_class</mat-icon>
+              <span>{{ flight.travelerPricings?.[0]?.fareDetailsBySegment?.[0]?.cabin || 'Economy' }}</span>
             </div>
-            <div class="stat" *ngIf="flight.aircraft">
-              <mat-icon>airline_seat_recline_normal</mat-icon>
-              <span>{{ flight.aircraft.total_seats }} asientos</span>
+            <div class="stat" *ngIf="flight.itineraries?.[0]?.segments?.length > 1">
+              <mat-icon>connecting_airports</mat-icon>
+              <span>{{ flight.itineraries[0].segments.length - 1 }} escala(s)</span>
+            </div>
+            <div class="stat" *ngIf="!flight.itineraries?.[0]?.segments || flight.itineraries[0].segments.length === 1">
+              <mat-icon>check_circle</mat-icon>
+              <span class="direct-badge">Directo</span>
             </div>
           </div>
         </mat-card-content>

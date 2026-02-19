@@ -160,6 +160,36 @@ export class FlightSearchComponent implements OnInit {
     }
   }
 
+  // Helper methods for Amadeus data structure
+  getAirlineName(code: string): string {
+    const airlines: { [key: string]: string } = {
+      'IB': 'Iberia',
+      'UX': 'Air Europa',
+      'VY': 'Vueling',
+      'AA': 'American Airlines',
+      'BA': 'British Airways',
+      'AF': 'Air France',
+      'LH': 'Lufthansa'
+    };
+    return airlines[code] || code;
+  }
+
+  formatDuration(duration: string): string {
+    if (!duration) return '';
+    // Format: PT1H25M -> 1h 25m
+    const match = duration.match(/PT(\d+H)?(\d+M)?/);
+    if (!match) return duration;
+    
+    const hours = match[1] ? match[1].replace('H', 'h ') : '';
+    const minutes = match[2] ? match[2].replace('M', 'm') : '';
+    return (hours + minutes).trim();
+  }
+
+  getLastSegment(flight: any): any {
+    const segments = flight?.itineraries?.[0]?.segments;
+    return segments ? segments[segments.length - 1] : null;
+  }
+
   private formatDate(date: Date): string {
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, '0');
