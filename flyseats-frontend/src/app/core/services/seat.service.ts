@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, of } from 'rxjs';
-import { tap, catchError } from 'rxjs/operators';
+import { map, tap, catchError } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
 import { 
   Seat, 
@@ -69,12 +69,11 @@ export class SeatService {
    */
   leaveFlight(seatId: string): Observable<boolean> {
     return this.http.delete<{ message: string }>(`${this.API_URL}/seats/${seatId}`).pipe(
+      map(() => true),
       catchError(error => {
         console.error('Error leaving flight:', error);
         return of(false);
       })
-    ).pipe(
-      tap(() => true)
     );
   }
 
