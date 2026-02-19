@@ -136,12 +136,14 @@ class RedisClient:
         """Cachea resultados de búsqueda de vuelos"""
         # Crear una key única basada en los parámetros de búsqueda
         key_parts = [
-            search_params.get('origin'),
-            search_params.get('destination'),
-            search_params.get('departureDate'),
-            search_params.get('returnDate', ''),
+            str(search_params.get('origin') or ''),
+            str(search_params.get('destination') or ''),
+            str(search_params.get('departureDate') or ''),
+            str(search_params.get('returnDate') or ''),
             str(search_params.get('adults', 1))
         ]
+        # Filtrar partes vacías
+        key_parts = [part for part in key_parts if part]
         cache_key = f"flights:{'_'.join(key_parts)}"
         
         return self.set(
@@ -153,12 +155,14 @@ class RedisClient:
     def get_cached_flight_search(self, search_params: dict) -> Optional[dict]:
         """Obtiene resultados cacheados de búsqueda de vuelos"""
         key_parts = [
-            search_params.get('origin'),
-            search_params.get('destination'),
-            search_params.get('departureDate'),
-            search_params.get('returnDate', ''),
+            str(search_params.get('origin') or ''),
+            str(search_params.get('destination') or ''),
+            str(search_params.get('departureDate') or ''),
+            str(search_params.get('returnDate') or ''),
             str(search_params.get('adults', 1))
         ]
+        # Filtrar partes vacías
+        key_parts = [part for part in key_parts if part]
         cache_key = f"flights:{'_'.join(key_parts)}"
         
         return self.get(cache_key)
