@@ -4,7 +4,7 @@
       <mat-icon mat-card-avatar>airline_seat_recline_normal</mat-icon>
       <mat-card-title>Join Flight {{ flight.flight_number }}</mat-card-title>
       <mat-card-subtitle>
-        {{ flight.departure.city }} → {{ flight.arrival.city }}
+        {{ flight.departure?.city }} → {{ flight.arrival?.city }}
       </mat-card-subtitle>
     </mat-card-header>
     

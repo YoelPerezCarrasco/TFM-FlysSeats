@@ -25,7 +25,7 @@
             <p class="flight-number">{{ flight.flight_number }}</p>
           </div>
         </div>
-        <mat-chip [class]="'status-chip status-' + flight.status.toLowerCase()">
+        <mat-chip [class]="'status-chip status-' + (flight.status?.toLowerCase() || 'upcoming')">
           {{ flight.status }}
         </mat-chip>
       </div>
@@ -33,19 +33,19 @@
       <!-- Route Visualization -->
       <div class="route-section">
         <div class="route-point">
-          <div class="airport-code">{{ flight.departure.airport_code }}</div>
+          <div class="airport-code">{{ flight.departure?.airport_code }}</div>
           <div class="airport-details">
             <mat-icon>location_on</mat-icon>
             <div>
-              <div class="city">{{ flight.departure.city }}</div>
-              <div class="country">{{ flight.departure.country }}</div>
+              <div class="city">{{ flight.departure?.city }}</div>
+              <div class="country">{{ flight.departure?.country }}</div>
             </div>
           </div>
           <div class="datetime">
             <mat-icon>schedule</mat-icon>
             <div>
-              <div class="date">{{ formatDate(flight.departure.date) }}</div>
-              <div class="time">{{ flight.departure.time }}</div>
+              <div class="date">{{ formatDate(flight.departure?.date) }}</div>
+              <div class="time">{{ flight.departure?.time }}</div>
             </div>
           </div>
         </div>
@@ -58,19 +58,19 @@
         </div>
 
         <div class="route-point">
-          <div class="airport-code">{{ flight.arrival.airport_code }}</div>
+          <div class="airport-code">{{ flight.arrival?.airport_code }}</div>
           <div class="airport-details">
             <mat-icon>location_on</mat-icon>
             <div>
-              <div class="city">{{ flight.arrival.city }}</div>
-              <div class="country">{{ flight.arrival.country }}</div>
+              <div class="city">{{ flight.arrival?.city }}</div>
+              <div class="country">{{ flight.arrival?.country }}</div>
             </div>
           </div>
           <div class="datetime">
             <mat-icon>schedule</mat-icon>
             <div>
-              <div class="date">{{ formatDate(flight.arrival.date) }}</div>
-              <div class="time">{{ flight.arrival.time }}</div>
+              <div class="date">{{ formatDate(flight.arrival?.date) }}</div>
+              <div class="time">{{ flight.arrival?.time }}</div>
             </div>
           </div>
         </div>

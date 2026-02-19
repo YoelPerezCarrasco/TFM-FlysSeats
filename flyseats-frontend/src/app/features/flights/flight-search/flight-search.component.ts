@@ -161,7 +161,8 @@ export class FlightSearchComponent implements OnInit {
   }
 
   // Helper methods for Amadeus data structure
-  getAirlineName(code: string): string {
+  getAirlineName(code: string | undefined): string {
+    if (!code) return '';
     const airlines: { [key: string]: string } = {
       'IB': 'Iberia',
       'UX': 'Air Europa',
@@ -174,7 +175,7 @@ export class FlightSearchComponent implements OnInit {
     return airlines[code] || code;
   }
 
-  formatDuration(duration: string): string {
+  formatDuration(duration: string | undefined): string {
     if (!duration) return '';
     // Format: PT1H25M -> 1h 25m
     const match = duration.match(/PT(\d+H)?(\d+M)?/);
