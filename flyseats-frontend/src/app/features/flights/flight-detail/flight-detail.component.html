@@ -1,0 +1,184 @@
+<div class="flight-detail-page">
+  <!-- Loading State -->
+  <div *ngIf="loading" class="loading-container">
+    <mat-spinner diameter="60"></mat-spinner>
+    <p>Cargando detalles del vuelo...</p>
+  </div>
+
+  <!-- Flight Details -->
+  <div *ngIf="!loading && flight" class="detail-content animate-fade-in">
+    <!-- Back Button -->
+    <button mat-button class="back-button" (click)="onBack()">
+      <mat-icon>arrow_back</mat-icon>
+      Volver a búsqueda
+    </button>
+
+    <!-- Hero Section -->
+    <div class="hero-card">
+      <div class="hero-header">
+        <div class="flight-info-main">
+          <div class="airline-badge">
+            <mat-icon>flight</mat-icon>
+          </div>
+          <div>
+            <h1>{{ flight.airline }}</h1>
+            <p class="flight-number">{{ flight.flight_number }}</p>
+          </div>
+        </div>
+        <mat-chip [class]="'status-chip status-' + flight.status.toLowerCase()">
+          {{ flight.status }}
+        </mat-chip>
+      </div>
+
+      <!-- Route Visualization -->
+      <div class="route-section">
+        <div class="route-point">
+          <div class="airport-code">{{ flight.departure.airport_code }}</div>
+          <div class="airport-details">
+            <mat-icon>location_on</mat-icon>
+            <div>
+              <div class="city">{{ flight.departure.city }}</div>
+              <div class="country">{{ flight.departure.country }}</div>
+            </div>
+          </div>
+          <div class="datetime">
+            <mat-icon>schedule</mat-icon>
+            <div>
+              <div class="date">{{ formatDate(flight.departure.date) }}</div>
+              <div class="time">{{ flight.departure.time }}</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="route-connector">
+          <div class="plane-animation">
+            <mat-icon>flight</mat-icon>
+          </div>
+          <div class="connector-line"></div>
+        </div>
+
+        <div class="route-point">
+          <div class="airport-code">{{ flight.arrival.airport_code }}</div>
+          <div class="airport-details">
+            <mat-icon>location_on</mat-icon>
+            <div>
+              <div class="city">{{ flight.arrival.city }}</div>
+              <div class="country">{{ flight.arrival.country }}</div>
+            </div>
+          </div>
+          <div class="datetime">
+            <mat-icon>schedule</mat-icon>
+            <div>
+              <div class="date">{{ formatDate(flight.arrival.date) }}</div>
+              <div class="time">{{ flight.arrival.time }}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Stats -->
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-icon" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+            <mat-icon>people</mat-icon>
+          </div>
+          <div class="stat-info">
+            <div class="stat-value">{{ flight.participants_count || 0 }}</div>
+            <div class="stat-label">Pasajeros</div>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon" style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);">
+            <mat-icon>swap_horiz</mat-icon>
+          </div>
+          <div class="stat-info">
+            <div class="stat-value">{{ flight.active_swaps_count || 0 }}</div>
+            <div class="stat-label">Intercambios Activos</div>
+          </div>
+        </div>
+
+        <div class="stat-card" *ngIf="flight.aircraft">
+          <div class="stat-icon" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
+            <mat-icon>airline_seat_recline_normal</mat-icon>
+          </div>
+          <div class="stat-info">
+            <div class="stat-value">{{ flight.aircraft.total_seats }}</div>
+            <div class="stat-label">Asientos Totales</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Action Button -->
+      <button mat-raised-button color="primary" class="join-button" (click)="onJoinFlight()">
+        <mat-icon>add_circle</mat-icon>
+        Unirme a este Vuelo
+      </button>
+    </div>
+
+    <!-- Passengers Section -->
+    <div class="passengers-section" *ngIf="seats.length > 0">
+      <h2>
+        <mat-icon>people</mat-icon>
+        Pasajeros ({{ seats.length }})
+      </h2>
+      
+      <div class="passengers-grid">
+        <div *ngFor="let seat of seats" class="passenger-card">
+          <div class="seat-badge" [class.open-swap]="seat.open_to_swap">
+            {{ seat.seat_number }}
+          </div>
+          <div class="seat-details">
+            <div class="seat-type">
+              <mat-icon>{{ getSeatIcon(seat.seat_details.type) }}</mat-icon>
+              {{ seat.seat_details.type }}
+            </div>
+            <div class="seat-section">
+              <mat-icon>view_column</mat-icon>
+              {{ seat.seat_details.section }}
+            </div>
+          </div>
+          <div class="swap-status">
+            <mat-icon [class.active]="seat.open_to_swap">
+              {{ seat.open_to_swap ? 'check_circle' : 'cancel' }}
+            </mat-icon>
+            <span>{{ seat.open_to_swap ? 'Abierto a intercambio' : 'No intercambia' }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Aircraft Info -->
+    <mat-card class="aircraft-card" *ngIf="flight.aircraft">
+      <mat-card-header>
+        <mat-icon mat-card-avatar>flight_class</mat-icon>
+        <mat-card-title>Información de la Aeronave</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="aircraft-info">
+          <div class="info-item">
+            <span class="label">Modelo:</span>
+            <span class="value">{{ flight.aircraft.model }}</span>
+          </div>
+          <div class="info-item">
+            <span class="label">Capacidad:</span>
+            <span class="value">{{ flight.aircraft.total_seats }} asientos</span>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+  <!-- Not Found -->
+  <div *ngIf="!loading && !flight" class="not-found">
+    <div class="not-found-icon">
+      <mat-icon>error_outline</mat-icon>
+    </div>
+    <h2>Vuelo No Encontrado</h2>
+    <p>El vuelo que buscas no existe o ha sido eliminado</p>
+    <button mat-raised-button color="primary" (click)="onBack()">
+      <mat-icon>arrow_back</mat-icon>
+      Volver a Búsqueda
+    </button>
+  </div>
+</div>

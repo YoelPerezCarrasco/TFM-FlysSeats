@@ -1,0 +1,164 @@
+<div class="flight-search-page">
+  <!-- Hero Section -->
+  <div class="hero-section">
+    <div class="hero-content">
+      <h1 class="hero-title animate-fade-in">
+        <span class="gradient-text">FlysSeats</span>
+      </h1>
+      <p class="hero-subtitle animate-fade-in">Encuentra tu vuelo perfecto y intercambia asientos con otros pasajeros</p>
+    </div>
+    
+    <!-- Search Card -->
+    <mat-card class="search-card glass-card animate-slide-in">
+      <mat-card-content>
+        <form [formGroup]="searchForm" (ngSubmit)="onSearch()">
+          <div class="search-header">
+            <mat-icon class="search-icon">search</mat-icon>
+            <h2>Buscar Vuelos</h2>
+          </div>
+          
+          <div class="form-grid">
+            <mat-form-field appearance="outline" class="form-field">
+              <mat-label>Número de Vuelo</mat-label>
+              <input matInput formControlName="flight_number" placeholder="AA123">
+              <mat-icon matPrefix>confirmation_number</mat-icon>
+            </mat-form-field>
+            
+            <mat-form-field appearance="outline" class="form-field">
+              <mat-label>Fecha</mat-label>
+              <input matInput [matDatepicker]="picker" formControlName="date">
+              <mat-datepicker-toggle matPrefix [for]="picker"></mat-datepicker-toggle>
+              <mat-datepicker #picker></mat-datepicker>
+            </mat-form-field>
+            
+            <mat-form-field appearance="outline" class="form-field">
+              <mat-label>Desde</mat-label>
+              <input matInput formControlName="departure_code" placeholder="MAD" maxlength="3">
+              <mat-icon matPrefix>flight_takeoff</mat-icon>
+            </mat-form-field>
+            
+            <mat-form-field appearance="outline" class="form-field">
+              <mat-label>Hasta</mat-label>
+              <input matInput formControlName="arrival_code" placeholder="BCN" maxlength="3">
+              <mat-icon matPrefix>flight_land</mat-icon>
+            </mat-form-field>
+          </div>
+          
+          <div class="action-buttons">
+            <button mat-raised-button color="primary" type="submit" [disabled]="loading" class="search-btn">
+              <mat-icon>search</mat-icon>
+              Buscar Vuelos
+            </button>
+            <button mat-raised-button color="accent" type="button" (click)="onCreateFlight()" class="create-btn">
+              <mat-icon>add_circle</mat-icon>
+              Crear Vuelo
+            </button>
+          </div>
+        </form>
+      </mat-card-content>
+    </mat-card>
+  </div>
+  
+  <!-- Loading State -->
+  <div *ngIf="loading" class="loading-container">
+    <mat-spinner diameter="50"></mat-spinner>
+    <p>Buscando vuelos...</p>
+  </div>
+  
+  <!-- Results Section -->
+  <div *ngIf="!loading && flights.length > 0" class="results-section">
+    <div class="results-header">
+      <h2><span class="gradient-text">{{ flights.length }}</span> Vuelos Encontrados</h2>
+      <div class="results-stats">
+        <mat-chip>
+          <mat-icon>date_range</mat-icon>
+          Hoy
+        </mat-chip>
+        <mat-chip>
+          <mat-icon>trending_up</mat-icon>
+          Más populares
+        </mat-chip>
+      </div>
+    </div>
+    
+    <div class="flights-grid">
+      <mat-card *ngFor="let flight of flights; let i = index" 
+                class="flight-card" 
+                (click)="onFlightClick(flight)"
+                [style.animation-delay]="(i * 0.1) + 's'">
+        <mat-card-header>
+          <div class="flight-header">
+            <div class="flight-number">
+              <mat-icon class="airline-icon">flight</mat-icon>
+              <div>
+                <h3>{{ flight.airline }}</h3>
+                <span class="flight-code">{{ flight.flight_number }}</span>
+              </div>
+            </div>
+            <mat-chip [class]="'status-chip status-' + flight.status.toLowerCase()">
+              {{ flight.status }}
+            </mat-chip>
+          </div>
+        </mat-card-header>
+        
+        <mat-card-content>
+          <div class="flight-route">
+            <div class="airport">
+              <div class="airport-code">{{ flight.departure.airport_code }}</div>
+              <div class="airport-name">{{ flight.departure.city }}</div>
+              <div class="flight-time">{{ flight.departure.time }}</div>
+            </div>
+            
+            <div class="route-line">
+              <div class="plane-icon">
+                <mat-icon>flight</mat-icon>
+              </div>
+              <div class="duration-line"></div>
+            </div>
+            
+            <div class="airport">
+              <div class="airport-code">{{ flight.arrival.airport_code }}</div>
+              <div class="airport-name">{{ flight.arrival.city }}</div>
+              <div class="flight-time">{{ flight.arrival.time }}</div>
+            </div>
+          </div>
+          
+          <div class="flight-stats">
+            <div class="stat">
+              <mat-icon>people</mat-icon>
+              <span>{{ flight.participants_count || 0 }} pasajeros</span>
+            </div>
+            <div class="stat">
+              <mat-icon>swap_horiz</mat-icon>
+              <span>{{ flight.active_swaps_count || 0 }} intercambios</span>
+            </div>
+            <div class="stat" *ngIf="flight.aircraft">
+              <mat-icon>airline_seat_recline_normal</mat-icon>
+              <span>{{ flight.aircraft.total_seats }} asientos</span>
+            </div>
+          </div>
+        </mat-card-content>
+        
+        <mat-card-actions>
+          <button mat-button class="view-btn">
+            Ver Detalles
+            <mat-icon>arrow_forward</mat-icon>
+          </button>
+        </mat-card-actions>
+      </mat-card>
+    </div>
+  </div>
+  
+  <!-- No Results -->
+  <div *ngIf="!loading && searchPerformed && flights.length === 0" class="no-results">
+    <div class="no-results-icon">
+      <mat-icon>flight_land</mat-icon>
+    </div>
+    <h3>No se encontraron vuelos</h3>
+    <p>Intenta ajustar tus criterios de búsqueda o crea un nuevo vuelo</p>
+    <button mat-raised-button color="accent" (click)="onCreateFlight()">
+      <mat-icon>add_circle</mat-icon>
+      Crear Nuevo Vuelo
+    </button>
+  </div>
+</div>

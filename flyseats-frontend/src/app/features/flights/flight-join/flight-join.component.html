@@ -1,0 +1,124 @@
+<div class="flight-join-container">
+  <mat-card *ngIf="flight">
+    <mat-card-header>
+      <mat-icon mat-card-avatar>airline_seat_recline_normal</mat-icon>
+      <mat-card-title>Join Flight {{ flight.flight_number }}</mat-card-title>
+      <mat-card-subtitle>
+        {{ flight.departure.city }} → {{ flight.arrival.city }}
+      </mat-card-subtitle>
+    </mat-card-header>
+    
+    <mat-card-content>
+      <form [formGroup]="joinForm" (ngSubmit)="onSubmit()">
+        
+        <!-- Seat Selection -->
+        <h3>Your Current Seat</h3>
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Seat Number</mat-label>
+          <input matInput formControlName="seat_number" placeholder="12A" required>
+          <mat-hint>Format: Row + Letter (e.g., 12A, 3F)</mat-hint>
+          <mat-error *ngIf="joinForm.get('seat_number')?.hasError('pattern')">
+            Invalid seat format. Use format like 12A or 3F
+          </mat-error>
+        </mat-form-field>
+
+        <!-- Seat Features -->
+        <h3>Seat Features</h3>
+        <div class="checkbox-group">
+          <mat-checkbox formControlName="is_emergency_exit">Emergency Exit</mat-checkbox>
+          <mat-checkbox formControlName="extra_legroom">Extra Legroom</mat-checkbox>
+          <mat-checkbox formControlName="is_reclinable" [checked]="true">Reclinable</mat-checkbox>
+        </div>
+
+        <!-- Swap Preferences -->
+        <h3>Swap Preferences</h3>
+        <mat-checkbox formControlName="open_to_swap" [checked]="true" class="full-width">
+          I'm open to swapping seats
+        </mat-checkbox>
+
+        <div *ngIf="joinForm.get('open_to_swap')?.value" class="preferences-section">
+          
+          <!-- Desired Seat Types -->
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Preferred Seat Types</mat-label>
+            <mat-select formControlName="desired_types" multiple>
+              <mat-option value="WINDOW">Window</mat-option>
+              <mat-option value="AISLE">Aisle</mat-option>
+              <mat-option value="MIDDLE">Middle</mat-option>
+            </mat-select>
+            <mat-hint>Select all types you'd accept</mat-hint>
+          </mat-form-field>
+
+          <!-- Desired Section -->
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Preferred Section</mat-label>
+            <mat-select formControlName="desired_section">
+              <mat-option [value]="null">Any Section</mat-option>
+              <mat-option value="FRONT">Front</mat-option>
+              <mat-option value="MIDDLE">Middle</mat-option>
+              <mat-option value="BACK">Back</mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <!-- Together Seats -->
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Seats Together</mat-label>
+            <input matInput type="number" formControlName="together_seats" min="0" max="10">
+            <mat-hint>How many seats you need together (0 = traveling solo)</mat-hint>
+          </mat-form-field>
+
+          <!-- Emergency Exit Preference -->
+          <mat-checkbox formControlName="prefer_emergency_exit" class="full-width">
+            Prefer emergency exit seats
+          </mat-checkbox>
+
+          <!-- Importance Weights -->
+          <h4>How important is each preference? (1-5)</h4>
+          
+          <div class="slider-group">
+            <label>Seat Type</label>
+            <mat-slider min="1" max="5" step="1" showTickMarks discrete>
+              <input matSliderThumb formControlName="importance_seat_type">
+            </mat-slider>
+            <span class="slider-value">{{ joinForm.get('importance_seat_type')?.value }}</span>
+          </div>
+
+          <div class="slider-group">
+            <label>Section</label>
+            <mat-slider min="1" max="5" step="1" showTickMarks discrete>
+              <input matSliderThumb formControlName="importance_section">
+            </mat-slider>
+            <span class="slider-value">{{ joinForm.get('importance_section')?.value }}</span>
+          </div>
+
+          <div class="slider-group">
+            <label>Together Seats</label>
+            <mat-slider min="1" max="5" step="1" showTickMarks discrete>
+              <input matSliderThumb formControlName="importance_together">
+            </mat-slider>
+            <span class="slider-value">{{ joinForm.get('importance_together')?.value }}</span>
+          </div>
+
+          <div class="slider-group">
+            <label>Emergency Exit</label>
+            <mat-slider min="1" max="5" step="1" showTickMarks discrete>
+              <input matSliderThumb formControlName="importance_emergency">
+            </mat-slider>
+            <span class="slider-value">{{ joinForm.get('importance_emergency')?.value }}</span>
+          </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="actions">
+          <button mat-button type="button" (click)="onCancel()">
+            Cancel
+          </button>
+          <button mat-raised-button color="primary" type="submit" [disabled]="!joinForm.valid || loading">
+            <mat-spinner *ngIf="loading" diameter="20"></mat-spinner>
+            <span *ngIf="!loading">Join Flight</span>
+          </button>
+        </div>
+      </form>
+    </mat-card-content>
+  </mat-card>
+</div>

@@ -1,0 +1,52 @@
+.flight-create-container {
+  padding: 20px;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+mat-card-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+mat-icon {
+  font-size: 32px;
+  width: 32px;
+  height: 32px;
+}
+
+h3 {
+  margin-top: 24px;
+  margin-bottom: 16px;
+  color: #1976d2;
+}
+
+.form-row {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 8px;
+}
+
+.half-width {
+  flex: 1;
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 24px;
+}
+
+mat-spinner {
+  display: inline-block;
+  margin-right: 8px;
+}
+
+@media (max-width: 768px) {
+  .form-row {
+    flex-direction: column;
+  }
+}

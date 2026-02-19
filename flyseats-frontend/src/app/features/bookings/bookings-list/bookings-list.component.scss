@@ -1,0 +1,42 @@
+.bookings-container {
+  padding: 20px;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+h1 {
+  margin-bottom: 24px;
+}
+
+.loading-spinner {
+  display: flex;
+  justify-content: center;
+  margin-top: 50px;
+}
+
+.no-bookings {
+  text-align: center;
+  padding: 50px;
+  color: #666;
+}
+
+.booking-card {
+  margin-bottom: 16px;
+}
+
+mat-chip {
+  &.confirmed {
+    background-color: #4caf50;
+    color: white;
+  }
+  
+  &.pending {
+    background-color: #ff9800;
+    color: white;
+  }
+  
+  &.cancelled {
+    background-color: #f44336;
+    color: white;
+  }
+}

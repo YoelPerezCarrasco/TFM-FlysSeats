@@ -21,51 +21,8 @@ import { AuthService } from '../../core/services/auth.service';
     MatButtonModule,
     TranslateModule
   ],
-  template: `
-    <div class="login-container">
-      <mat-card>
-        <mat-card-header>
-          <mat-card-title>{{ 'auth.login' | translate }}</mat-card-title>
-        </mat-card-header>
-        <mat-card-content>
-          <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
-            <mat-form-field appearance="outline" class="full-width">
-              <mat-label>{{ 'auth.email' | translate }}</mat-label>
-              <input matInput type="email" formControlName="email" required>
-            </mat-form-field>
-            
-            <mat-form-field appearance="outline" class="full-width">
-              <mat-label>{{ 'auth.password' | translate }}</mat-label>
-              <input matInput type="password" formControlName="password" required>
-            </mat-form-field>
-            
-            <button mat-raised-button color="primary" type="submit" [disabled]="!loginForm.valid" class="full-width">
-              {{ 'auth.loginButton' | translate }}
-            </button>
-          </form>
-        </mat-card-content>
-      </mat-card>
-    </div>
-  `,
-  styles: [`
-    .login-container {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      min-height: 80vh;
-      padding: 20px;
-    }
-    
-    mat-card {
-      max-width: 400px;
-      width: 100%;
-    }
-    
-    .full-width {
-      width: 100%;
-      margin-bottom: 16px;
-    }
-  `]
+  templateUrl: './login.component.html',
+  styleUrls: ['./login.component.scss']
 })
 export class LoginComponent {
   loginForm: FormGroup;
