@@ -1,6 +1,6 @@
 <div class="flight-search-page">
-  <!-- HOME: Hero Section - Solo visible cuando NO hay vuelos -->
-  <div class="hero-section" *ngIf="flights.length === 0 && !loading">
+  <!-- HOME: Hero Section - Solo visible cuando showHome -->
+  <div class="hero-section" *ngIf="showHome && !loading">
     <div class="hero-content">
       <h1 class="hero-title animate-fade-in">
         <span class="gradient-text">FlysSeats</span>
@@ -14,24 +14,24 @@
         <div class="search-header">
           <mat-icon class="search-icon">flight</mat-icon>
           <div>
-            <h2>Buscar Vuelo</h2>
-            <p class="search-hint">Ingresa el código de tu vuelo o deja vacío para ver todos</p>
+            <h2>¿A dónde quieres volar?</h2>
+            <p class="search-hint">Escribe un destino, ciudad o código de aeropuerto</p>
           </div>
         </div>
         
         <form [formGroup]="searchForm" (ngSubmit)="onSearch()">
           <div class="simple-search">
             <mat-form-field appearance="outline" class="full-width-field">
-              <mat-label>Número de Vuelo (Opcional)</mat-label>
-              <input matInput formControlName="flight_number" placeholder="Ejemplo: IB3456, AA123, VY2043..." (input)="onFlightNumberInput()">
-              <mat-icon matPrefix>confirmation_number</mat-icon>
-              <button mat-icon-button matSuffix *ngIf="searchForm.get('flight_number')?.value" (click)="clearSearch()" type="button">
+              <mat-label>Destino</mat-label>
+              <input matInput formControlName="destination" placeholder="Barcelona, Londres, París, Roma, JFK...">
+              <mat-icon matPrefix>place</mat-icon>
+              <button mat-icon-button matSuffix *ngIf="searchForm.get('destination')?.value" (click)="clearSearch()" type="button">
                 <mat-icon>clear</mat-icon>
               </button>
             </mat-form-field>
           </div>
 
-          <!-- Quick Search Buttons -->
+          <!-- Destinos populares -->
           <div class="quick-search">
             <p class="quick-search-label">
               <mat-icon>explore</mat-icon>
@@ -90,13 +90,9 @@
           </div>
           
           <div class="action-buttons">
-            <button mat-raised-button color="primary" type="submit" [disabled]="loading" class="search-btn">
+            <button mat-raised-button color="primary" type="submit" [disabled]="loading || !searchForm.get('destination')?.value" class="search-btn">
               <mat-icon>search</mat-icon>
-              Buscar
-            </button>
-            <button mat-raised-button color="accent" type="button" (click)="onCreateFlight()" class="create-btn">
-              <mat-icon>add_circle</mat-icon>
-              Registrar Mi Vuelo
+              Buscar vuelos
             </button>
           </div>
         </form>
@@ -105,7 +101,7 @@
   </div>
 
   <!-- RESULTADOS: Buscador compacto + lista de vuelos -->
-  <div class="results-view" *ngIf="flights.length > 0 || loading">
+  <div class="results-view" *ngIf="!showHome || loading">
     <!-- Buscador Compacto -->
     <div class="compact-search">
       <button mat-icon-button class="back-btn" (click)="backToHome()">
@@ -113,18 +109,16 @@
       </button>
       <form [formGroup]="searchForm" (ngSubmit)="onSearch()" class="compact-form">
         <mat-form-field appearance="outline" class="compact-field">
-          <mat-label>Buscar vuelo</mat-label>
-          <input matInput formControlName="flight_number" placeholder="Código de vuelo o ruta..." (input)="onFlightNumberInput()">
-          <mat-icon matPrefix>search</mat-icon>
-          <button mat-icon-button matSuffix *ngIf="searchForm.get('flight_number')?.value" (click)="clearSearch()" type="button">
+          <mat-label>Cambiar destino</mat-label>
+          <input matInput formControlName="destination" placeholder="Barcelona, París, JFK...">
+          <mat-icon matPrefix>place</mat-icon>
+          <button mat-icon-button matSuffix *ngIf="searchForm.get('destination')?.value" (click)="clearSearch()" type="button">
             <mat-icon>clear</mat-icon>
           </button>
         </mat-form-field>
-        <div class="compact-quick-buttons">
-          <button mat-button type="button" (click)="quickSearch('MAD', 'BCN')">MAD → BCN</button>
-          <button mat-button type="button" (click)="quickSearch('BCN', 'MAD')">BCN → MAD</button>
-          <button mat-button type="button" (click)="quickSearch('MAD', 'NYC')">MAD → NYC</button>
-        </div>
+        <button mat-icon-button type="submit" class="compact-search-btn">
+          <mat-icon>search</mat-icon>
+        </button>
       </form>
     </div>
     
@@ -323,18 +317,10 @@
         </div>
       </div>
     </div>
-  </div>
-  
-  <!-- No Results -->
-  <div *ngIf="!loading && searchPerformed && flights.length === 0" class="no-results">
-    <div class="no-results-icon">
-      <mat-icon>flight_land</mat-icon>
+    <!-- No hay resultados -->
+    <div *ngIf="!loading && searchPerformed && flights.length === 0" class="no-results-inline">
+      <mat-icon>cloud_off</mat-icon>
+      <p>No encontramos vuelos para ese destino. Prueba con otro.</p>
     </div>
-    <h3>No se encontraron vuelos</h3>
-    <p>Intenta ajustar tus criterios de búsqueda o crea un nuevo vuelo</p>
-    <button mat-raised-button color="accent" (click)="onCreateFlight()">
-      <mat-icon>add_circle</mat-icon>
-      Crear Nuevo Vuelo
-    </button>
   </div>
 </div>

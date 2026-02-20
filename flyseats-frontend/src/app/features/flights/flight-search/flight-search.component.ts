@@ -53,6 +53,98 @@ export class FlightSearchComponent implements OnInit {
   loading = false;
   searchPerformed = false;
   selectedFlight: Flight | null = null;
+  showHome = true;
+
+  // Mapa flexible de destinos: nombre/variante → código IATA
+  private destinationMap: { [key: string]: { departure: string; arrival: string } } = {
+    // Barcelona
+    'barcelona': { departure: 'MAD', arrival: 'BCN' },
+    'bcn': { departure: 'MAD', arrival: 'BCN' },
+    'barna': { departure: 'MAD', arrival: 'BCN' },
+    'el prat': { departure: 'MAD', arrival: 'BCN' },
+    // Madrid
+    'madrid': { departure: 'BCN', arrival: 'MAD' },
+    'mad': { departure: 'BCN', arrival: 'MAD' },
+    'barajas': { departure: 'BCN', arrival: 'MAD' },
+    // Londres
+    'londres': { departure: 'MAD', arrival: 'LHR' },
+    'london': { departure: 'MAD', arrival: 'LHR' },
+    'lhr': { departure: 'MAD', arrival: 'LHR' },
+    'heathrow': { departure: 'MAD', arrival: 'LHR' },
+    // Roma
+    'roma': { departure: 'MAD', arrival: 'FCO' },
+    'rome': { departure: 'MAD', arrival: 'FCO' },
+    'fco': { departure: 'MAD', arrival: 'FCO' },
+    'fiumicino': { departure: 'MAD', arrival: 'FCO' },
+    // París
+    'paris': { departure: 'MAD', arrival: 'CDG' },
+    'cdg': { departure: 'MAD', arrival: 'CDG' },
+    'charles de gaulle': { departure: 'MAD', arrival: 'CDG' },
+    // Nueva York
+    'nueva york': { departure: 'MAD', arrival: 'JFK' },
+    'new york': { departure: 'MAD', arrival: 'JFK' },
+    'ny': { departure: 'MAD', arrival: 'JFK' },
+    'jfk': { departure: 'MAD', arrival: 'JFK' },
+    'nyc': { departure: 'MAD', arrival: 'JFK' },
+    // Lisboa
+    'lisboa': { departure: 'MAD', arrival: 'LIS' },
+    'lisbon': { departure: 'MAD', arrival: 'LIS' },
+    'lis': { departure: 'MAD', arrival: 'LIS' },
+    // Ámsterdam
+    'amsterdam': { departure: 'MAD', arrival: 'AMS' },
+    'ams': { departure: 'MAD', arrival: 'AMS' },
+    // Berlín
+    'berlin': { departure: 'MAD', arrival: 'BER' },
+    'ber': { departure: 'MAD', arrival: 'BER' },
+    // Milán
+    'milan': { departure: 'MAD', arrival: 'MXP' },
+    'mxp': { departure: 'MAD', arrival: 'MXP' },
+    // Múnich
+    'munich': { departure: 'MAD', arrival: 'MUC' },
+    'muc': { departure: 'MAD', arrival: 'MUC' },
+    // Dubái
+    'dubai': { departure: 'MAD', arrival: 'DXB' },
+    'dxb': { departure: 'MAD', arrival: 'DXB' },
+    // Atenas
+    'atenas': { departure: 'MAD', arrival: 'ATH' },
+    'athens': { departure: 'MAD', arrival: 'ATH' },
+    'ath': { departure: 'MAD', arrival: 'ATH' },
+    // Estambul
+    'estambul': { departure: 'MAD', arrival: 'IST' },
+    'istanbul': { departure: 'MAD', arrival: 'IST' },
+    'ist': { departure: 'MAD', arrival: 'IST' },
+    // Viena
+    'viena': { departure: 'MAD', arrival: 'VIE' },
+    'vienna': { departure: 'MAD', arrival: 'VIE' },
+    'vie': { departure: 'MAD', arrival: 'VIE' },
+    // Praga
+    'praga': { departure: 'MAD', arrival: 'PRG' },
+    'prague': { departure: 'MAD', arrival: 'PRG' },
+    'prg': { departure: 'MAD', arrival: 'PRG' },
+    // Zúrich
+    'zurich': { departure: 'MAD', arrival: 'ZRH' },
+    'zrh': { departure: 'MAD', arrival: 'ZRH' },
+    // Málaga
+    'malaga': { departure: 'MAD', arrival: 'AGP' },
+    'agp': { departure: 'MAD', arrival: 'AGP' },
+    // Sevilla
+    'sevilla': { departure: 'MAD', arrival: 'SVQ' },
+    'svq': { departure: 'MAD', arrival: 'SVQ' },
+    // Palma
+    'palma': { departure: 'MAD', arrival: 'PMI' },
+    'mallorca': { departure: 'MAD', arrival: 'PMI' },
+    'pmi': { departure: 'MAD', arrival: 'PMI' },
+    // Ibiza
+    'ibiza': { departure: 'MAD', arrival: 'IBZ' },
+    'ibz': { departure: 'MAD', arrival: 'IBZ' },
+    // Tenerife
+    'tenerife': { departure: 'MAD', arrival: 'TFS' },
+    'tfs': { departure: 'MAD', arrival: 'TFS' },
+    // Gran Canaria
+    'gran canaria': { departure: 'MAD', arrival: 'LPA' },
+    'las palmas': { departure: 'MAD', arrival: 'LPA' },
+    'lpa': { departure: 'MAD', arrival: 'LPA' },
+  };
 
   constructor(
     private fb: FormBuilder,
@@ -60,47 +152,55 @@ export class FlightSearchComponent implements OnInit {
     private router: Router
   ) {
     this.searchForm = this.fb.group({
-      flight_number: ['']
+      destination: ['']
     });
   }
 
   ngOnInit(): void {
-    // Load all flights initially
-    this.loadAllFlights();
+    // No cargamos vuelos al inicio, mostramos el home
   }
 
-  loadAllFlights(): void {
-    this.loading = true;
-    this.flightService.searchFlights().subscribe({
-      next: (flights) => {
-        this.flights = flights;
-        this.loading = false;
-        this.searchPerformed = true;
-      },
-      error: (error) => {
-        console.error('Error loading flights:', error);
-        this.loading = false;
-      }
-    });
-  }
+  private resolveDestination(input: string): { departure: string; arrival: string } | null {
+    const normalized = input.toLowerCase().trim()
+      .normalize('NFD').replace(/[\u0300-\u036f]/g, ''); // Remove accents
 
-  onFlightNumberInput(): void {
-    const flightNumber = this.searchForm.get('flight_number')?.value;
-    if (flightNumber && flightNumber.length >= 2) {
-      // Auto-search as user types
-      this.onSearch();
-    } else if (!flightNumber) {
-      this.loadAllFlights();
+    // Exact match
+    if (this.destinationMap[normalized]) {
+      return this.destinationMap[normalized];
     }
+
+    // Partial match: find first key that contains or is contained
+    for (const key of Object.keys(this.destinationMap)) {
+      if (key.includes(normalized) || normalized.includes(key)) {
+        return this.destinationMap[key];
+      }
+    }
+
+    // If input looks like an IATA code (3 letters), try as arrival from MAD
+    if (/^[a-z]{3}$/i.test(normalized)) {
+      return { departure: 'MAD', arrival: normalized.toUpperCase() };
+    }
+
+    // If input contains arrow pattern like "MAD BCN" or "MAD-BCN"
+    const routeMatch = normalized.match(/([a-z]{3})[\s\-→>]+([a-z]{3})/i);
+    if (routeMatch) {
+      return { departure: routeMatch[1].toUpperCase(), arrival: routeMatch[2].toUpperCase() };
+    }
+
+    return null;
+  }
+
+  onDestinationInput(): void {
+    // No auto-search, wait for submit or enter
   }
 
   clearSearch(): void {
-    this.searchForm.patchValue({ flight_number: '' });
-    this.loadAllFlights();
+    this.searchForm.patchValue({ destination: '' });
   }
 
   quickSearch(departure: string, arrival: string): void {
     this.loading = true;
+    this.showHome = false;
     this.searchPerformed = true;
     
     const params: FlightSearchParams = {
@@ -120,37 +220,26 @@ export class FlightSearchComponent implements OnInit {
     });
   }
 
-  showAllFlights(): void {
-    this.searchForm.patchValue({ flight_number: '' });
-    this.loadAllFlights();
-  }
-
   onSearch(): void {
-    this.loading = true;
-    this.searchPerformed = true;
+    const destination = this.searchForm.get('destination')?.value;
     
-    const flightNumber = this.searchForm.get('flight_number')?.value;
-    
-    if (!flightNumber || flightNumber.trim() === '') {
-      this.loadAllFlights();
+    if (!destination || destination.trim() === '') {
       return;
     }
+
+    const resolved = this.resolveDestination(destination);
     
-    const params: FlightSearchParams = {
-      flight_number: flightNumber.toUpperCase().trim()
-    };
-    
-    this.flightService.searchFlights(params).subscribe({
-      next: (flights) => {
-        this.flights = flights;
-        this.loading = false;
-        this.selectedFlight = null; // Reset selected flight
-      },
-      error: (error) => {
-        console.error('Search failed:', error);
-        this.loading = false;
-      }
-    });
+    if (!resolved) {
+      // Si no se reconoce, intentar como código IATA directo desde MAD
+      this.quickSearch('MAD', destination.toUpperCase().trim().substring(0, 3));
+      return;
+    }
+
+    this.quickSearch(resolved.departure, resolved.arrival);
+  }
+
+  showAllFlights(): void {
+    this.searchForm.patchValue({ destination: '' });
   }
 
   toggleFlightDetails(flight: Flight): void {
@@ -167,7 +256,8 @@ export class FlightSearchComponent implements OnInit {
     this.flights = [];
     this.selectedFlight = null;
     this.searchPerformed = false;
-    this.searchForm.patchValue({ flight_number: '' });
+    this.showHome = true;
+    this.searchForm.patchValue({ destination: '' });
   }
 
   onFlightClick(flight: Flight): void {
