@@ -36,12 +36,11 @@
 
       <!-- User Menu -->
       <div *ngIf="currentUser$ | async as user; else loginButton" class="user-menu">
-        <button mat-button [matMenuTriggerFor]="userMenu" class="user-button">
-          <div class="avatar">
-            <mat-icon>person</mat-icon>
+        <button [matMenuTriggerFor]="userMenu" class="user-avatar-btn" matTooltip="{{ user.name || 'Mi cuenta' }}">
+          <div class="avatar-circle">
+            <span class="avatar-initial">{{ (user.name || 'U').charAt(0).toUpperCase() }}</span>
           </div>
-          <span class="user-name desktop-only">{{ user.name || 'Usuario' }}</span>
-          <mat-icon class="dropdown-icon">arrow_drop_down</mat-icon>
+          <div class="online-dot"></div>
         </button>
       </div>
 
