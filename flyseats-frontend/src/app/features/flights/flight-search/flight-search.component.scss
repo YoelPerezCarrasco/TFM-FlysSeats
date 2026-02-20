@@ -704,11 +704,13 @@
 .flight-card.expanded {
   border-bottom-left-radius: 0;
   border-bottom-right-radius: 0;
-  border: 1px solid #ff6b6b !important;
-  border-bottom: none !important;
-  box-shadow: 0 4px 16px rgba(255, 107, 107, 0.35) !important;
-  background: linear-gradient(135deg, rgba(255, 107, 107, 0.08), rgba(254, 138, 113, 0.04)) !important;
-  transform: none !important;
+  transform: translateY(-8px) scale(1.02);
+  box-shadow: 0 20px 40px rgba(255, 107, 107, 0.4) !important;
+  border-color: #ff6b6b;
+}
+
+.flight-card.expanded::before {
+  transform: scaleX(1);
 }
 
 /* ========================================
