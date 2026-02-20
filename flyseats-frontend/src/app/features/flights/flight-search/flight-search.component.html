@@ -34,26 +34,58 @@
           <!-- Quick Search Buttons -->
           <div class="quick-search">
             <p class="quick-search-label">
-              <mat-icon>bolt</mat-icon>
-              Búsquedas rápidas
+              <mat-icon>explore</mat-icon>
+              Destinos populares
             </p>
-            <div class="quick-buttons">
-              <button mat-stroked-button type="button" (click)="quickSearch('MAD', 'BCN')" class="quick-btn">
-                <mat-icon>flight_takeoff</mat-icon>
-                Madrid → Barcelona
-              </button>
-              <button mat-stroked-button type="button" (click)="quickSearch('BCN', 'MAD')" class="quick-btn">
-                <mat-icon>flight_land</mat-icon>
-                Barcelona → Madrid
-              </button>
-              <button mat-stroked-button type="button" (click)="quickSearch('MAD', 'NYC')" class="quick-btn">
-                <mat-icon>public</mat-icon>
-                Madrid → Nueva York
-              </button>
-              <button mat-stroked-button type="button" (click)="showAllFlights()" class="quick-btn">
-                <mat-icon>list</mat-icon>
-                Ver Todos
-              </button>
+            <div class="destinations-grid">
+              <div class="destination-card" (click)="quickSearch('MAD', 'BCN')">
+                <div class="destination-img" style="background-image: url('https://images.unsplash.com/photo-1583422409516-2895a77efded?w=400&h=250&fit=crop')"></div>
+                <div class="destination-overlay">
+                  <span class="destination-route">MAD → BCN</span>
+                  <span class="destination-name">Barcelona</span>
+                  <span class="destination-tag">Desde 48€</span>
+                </div>
+              </div>
+              <div class="destination-card" (click)="quickSearch('BCN', 'MAD')">
+                <div class="destination-img" style="background-image: url('https://images.unsplash.com/photo-1539037116277-4db20889f2d4?w=400&h=250&fit=crop')"></div>
+                <div class="destination-overlay">
+                  <span class="destination-route">BCN → MAD</span>
+                  <span class="destination-name">Madrid</span>
+                  <span class="destination-tag">Desde 52€</span>
+                </div>
+              </div>
+              <div class="destination-card" (click)="quickSearch('MAD', 'LHR')">
+                <div class="destination-img" style="background-image: url('https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?w=400&h=250&fit=crop')"></div>
+                <div class="destination-overlay">
+                  <span class="destination-route">MAD → LHR</span>
+                  <span class="destination-name">Londres</span>
+                  <span class="destination-tag">Desde 89€</span>
+                </div>
+              </div>
+              <div class="destination-card" (click)="quickSearch('MAD', 'FCO')">
+                <div class="destination-img" style="background-image: url('https://images.unsplash.com/photo-1552832230-c0197dd311b5?w=400&h=250&fit=crop')"></div>
+                <div class="destination-overlay">
+                  <span class="destination-route">MAD → FCO</span>
+                  <span class="destination-name">Roma</span>
+                  <span class="destination-tag">Desde 75€</span>
+                </div>
+              </div>
+              <div class="destination-card" (click)="quickSearch('MAD', 'CDG')">
+                <div class="destination-img" style="background-image: url('https://images.unsplash.com/photo-1502602898657-3e91760cbb34?w=400&h=250&fit=crop')"></div>
+                <div class="destination-overlay">
+                  <span class="destination-route">MAD → CDG</span>
+                  <span class="destination-name">París</span>
+                  <span class="destination-tag">Desde 82€</span>
+                </div>
+              </div>
+              <div class="destination-card" (click)="quickSearch('MAD', 'JFK')">
+                <div class="destination-img" style="background-image: url('https://images.unsplash.com/photo-1496442226666-8d4d0e62e6e9?w=400&h=250&fit=crop')"></div>
+                <div class="destination-overlay">
+                  <span class="destination-route">MAD → JFK</span>
+                  <span class="destination-name">Nueva York</span>
+                  <span class="destination-tag">Desde 320€</span>
+                </div>
+              </div>
             </div>
           </div>
           
