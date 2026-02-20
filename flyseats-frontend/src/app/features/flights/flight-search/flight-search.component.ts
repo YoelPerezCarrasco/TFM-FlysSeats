@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
+import { trigger, state, style, transition, animate } from '@angular/animations';
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
@@ -33,13 +34,25 @@ import { Flight, FlightSearchParams } from '../../../core/models';
     TranslateModule
   ],
   templateUrl: './flight-search.component.html',
-  styleUrls: ['./flight-search.component.scss']
+  styleUrls: ['./flight-search.component.scss'],
+  animations: [
+    trigger('slideDown', [
+      transition(':enter', [
+        style({ height: '0', opacity: 0, overflow: 'hidden' }),
+        animate('300ms ease-out', style({ height: '*', opacity: 1 }))
+      ]),
+      transition(':leave', [
+        animate('300ms ease-in', style({ height: '0', opacity: 0, overflow: 'hidden' }))
+      ])
+    ])
+  ]
 })
 export class FlightSearchComponent implements OnInit {
   searchForm: FormGroup;
   flights: Flight[] = [];
   loading = false;
   searchPerformed = false;
+  selectedFlight: Flight | null = null;
 
   constructor(
     private fb: FormBuilder,
@@ -131,12 +144,30 @@ export class FlightSearchComponent implements OnInit {
       next: (flights) => {
         this.flights = flights;
         this.loading = false;
+        this.selectedFlight = null; // Reset selected flight
       },
       error: (error) => {
         console.error('Search failed:', error);
         this.loading = false;
       }
     });
+  }
+
+  toggleFlightDetails(flight: Flight): void {
+    // Si el mismo vuelo está seleccionado, lo deseleccionamos (collapse)
+    if (this.selectedFlight === flight) {
+      this.selectedFlight = null;
+    } else {
+      // Si es otro vuelo, lo seleccionamos (expand)
+      this.selectedFlight = flight;
+    }
+  }
+
+  backToHome(): void {
+    this.flights = [];
+    this.selectedFlight = null;
+    this.searchPerformed = false;
+    this.searchForm.patchValue({ flight_number: '' });
   }
 
   onFlightClick(flight: Flight): void {
@@ -193,6 +224,11 @@ export class FlightSearchComponent implements OnInit {
   getLastSegment(flight: any): any {
     const segments = flight?.itineraries?.[0]?.segments;
     return segments ? segments[segments.length - 1] : null;
+  }
+
+  // Helper para parsear strings a números en el template
+  parseFloat(value: string | undefined): number {
+    return parseFloat(value || '0');
   }
 
   private formatDate(date: Date): string {

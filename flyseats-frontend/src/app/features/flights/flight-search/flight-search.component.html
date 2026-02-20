@@ -1,6 +1,6 @@
 <div class="flight-search-page">
-  <!-- Hero Section -->
-  <div class="hero-section">
+  <!-- HOME: Hero Section - Solo visible cuando NO hay vuelos -->
+  <div class="hero-section" *ngIf="flights.length === 0 && !loading">
     <div class="hero-content">
       <h1 class="hero-title animate-fade-in">
         <span class="gradient-text">FlysSeats</span>
@@ -8,7 +8,7 @@
       <p class="hero-subtitle animate-fade-in">Encuentra tu vuelo y haz match con otros pasajeros para intercambiar asientos</p>
     </div>
     
-    <!-- Simple Search Card -->
+    <!-- Search Card Grande -->
     <mat-card class="search-card glass-card animate-slide-in">
       <mat-card-content>
         <div class="search-header">
@@ -71,100 +71,225 @@
       </mat-card-content>
     </mat-card>
   </div>
-  
-  <!-- Loading State -->
-  <div *ngIf="loading" class="loading-container">
-    <mat-spinner diameter="50"></mat-spinner>
-    <p>Buscando vuelos...</p>
-  </div>
-  
-  <!-- Results Section -->
-  <div *ngIf="!loading && flights.length > 0" class="results-section">
-    <div class="results-header">
-      <h2><span class="gradient-text">{{ flights.length }}</span> Vuelos Encontrados</h2>
-      <div class="results-stats">
-        <mat-chip>
-          <mat-icon>schedule</mat-icon>
-          {{ flights[0]?.itineraries?.[0]?.segments?.[0]?.departure?.at | date:'dd MMM' }}
-        </mat-chip>
-        <mat-chip>
-          <mat-icon>flight_takeoff</mat-icon>
-          Vuelos directos
-        </mat-chip>
-      </div>
+
+  <!-- RESULTADOS: Buscador compacto + lista de vuelos -->
+  <div class="results-view" *ngIf="flights.length > 0 || loading">
+    <!-- Buscador Compacto -->
+    <div class="compact-search">
+      <button mat-icon-button class="back-btn" (click)="backToHome()">
+        <mat-icon>arrow_back</mat-icon>
+      </button>
+      <form [formGroup]="searchForm" (ngSubmit)="onSearch()" class="compact-form">
+        <mat-form-field appearance="outline" class="compact-field">
+          <mat-label>Buscar vuelo</mat-label>
+          <input matInput formControlName="flight_number" placeholder="Código de vuelo o ruta..." (input)="onFlightNumberInput()">
+          <mat-icon matPrefix>search</mat-icon>
+          <button mat-icon-button matSuffix *ngIf="searchForm.get('flight_number')?.value" (click)="clearSearch()" type="button">
+            <mat-icon>clear</mat-icon>
+          </button>
+        </mat-form-field>
+        <div class="compact-quick-buttons">
+          <button mat-button type="button" (click)="quickSearch('MAD', 'BCN')">MAD → BCN</button>
+          <button mat-button type="button" (click)="quickSearch('BCN', 'MAD')">BCN → MAD</button>
+          <button mat-button type="button" (click)="quickSearch('MAD', 'NYC')">MAD → NYC</button>
+        </div>
+      </form>
     </div>
     
-    <div class="flights-grid">
-      <mat-card *ngFor="let flight of flights; let i = index" 
-                class="flight-card" 
-                (click)="onFlightClick(flight)"
-                [style.animation-delay]="(i * 0.05) + 's'">
-        <mat-card-header>
-          <div class="flight-header">
-            <div class="flight-number">
-              <mat-icon class="airline-icon">flight</mat-icon>
-              <div>
-                <h3>{{ getAirlineName(flight.validatingAirlineCodes?.[0]) }}</h3>
-                <span class="flight-code">{{ flight.itineraries?.[0]?.segments?.[0]?.carrierCode }} {{ flight.itineraries?.[0]?.segments?.[0]?.number }}</span>
-              </div>
-            </div>
-            <div class="price-tag">
-              <span class="price">{{ flight.price?.total }}€</span>
-              <span class="price-label">por persona</span>
-            </div>
-          </div>
-        </mat-card-header>
-        
-        <mat-card-content>
-          <div class="flight-route">
-            <div class="airport">
-              <div class="airport-code">{{ flight.itineraries?.[0]?.segments?.[0]?.departure?.iataCode }}</div>
-              <div class="flight-time">{{ flight.itineraries?.[0]?.segments?.[0]?.departure?.at | date:'HH:mm' }}</div>
-            </div>
-            
-            <div class="route-line">
-              <div class="duration-info">
-                <div class="plane-icon">
-                  <mat-icon>flight</mat-icon>
+    <!-- Loading State -->
+    <div *ngIf="loading" class="loading-container">
+      <mat-spinner diameter="50"></mat-spinner>
+      <p>Buscando vuelos...</p>
+    </div>
+    
+    <!-- Lista de Vuelos -->
+    <div *ngIf="!loading && flights.length > 0" class="results-section">
+      <div class="results-header">
+        <h2><span class="gradient-text">{{ flights.length }}</span> Vuelos Encontrados</h2>
+        <div class="results-stats">
+          <mat-chip>
+            <mat-icon>schedule</mat-icon>
+            {{ flights[0]?.itineraries?.[0]?.segments?.[0]?.departure?.at | date:'dd MMM' }}
+          </mat-chip>
+        </div>
+      </div>
+      
+      <div class="flights-list">
+        <div *ngFor="let flight of flights; let i = index" class="flight-item">
+          <!-- Tarjeta de Vuelo -->
+          <mat-card class="flight-card" 
+                    [class.expanded]="selectedFlight === flight"
+                    (click)="toggleFlightDetails(flight)"
+                    [style.animation-delay]="(i * 0.05) + 's'">
+            <mat-card-header>
+              <div class="flight-header">
+                <div class="flight-number">
+                  <mat-icon class="airline-icon">flight</mat-icon>
+                  <div>
+                    <h3>{{ getAirlineName(flight.validatingAirlineCodes?.[0]) }}</h3>
+                    <span class="flight-code">{{ flight.itineraries?.[0]?.segments?.[0]?.carrierCode }} {{ flight.itineraries?.[0]?.segments?.[0]?.number }}</span>
+                  </div>
                 </div>
-                <div class="duration-text">{{ formatDuration(flight.itineraries?.[0]?.duration) }}</div>
+                <div class="price-tag">
+                  <span class="price">{{ flight.price?.total }}€</span>
+                  <span class="price-label">por persona</span>
+                </div>
               </div>
-              <div class="duration-line"></div>
-            </div>
+            </mat-card-header>
             
-            <div class="airport">
-              <div class="airport-code">{{ getLastSegment(flight)?.arrival?.iataCode }}</div>
-              <div class="flight-time">{{ getLastSegment(flight)?.arrival?.at | date:'HH:mm' }}</div>
-            </div>
+            <mat-card-content>
+              <div class="flight-route">
+                <div class="airport">
+                  <div class="airport-code">{{ flight.itineraries?.[0]?.segments?.[0]?.departure?.iataCode }}</div>
+                  <div class="flight-time">{{ flight.itineraries?.[0]?.segments?.[0]?.departure?.at | date:'HH:mm' }}</div>
+                </div>
+                
+                <div class="route-line">
+                  <div class="duration-info">
+                    <div class="plane-icon">
+                      <mat-icon>flight</mat-icon>
+                    </div>
+                    <div class="duration-text">{{ formatDuration(flight.itineraries?.[0]?.duration) }}</div>
+                  </div>
+                  <div class="duration-line"></div>
+                </div>
+                
+                <div class="airport">
+                  <div class="airport-code">{{ getLastSegment(flight)?.arrival?.iataCode }}</div>
+                  <div class="flight-time">{{ getLastSegment(flight)?.arrival?.at | date:'HH:mm' }}</div>
+                </div>
+              </div>
+              
+              <div class="flight-stats">
+                <div class="stat">
+                  <mat-icon>airline_seat_recline_normal</mat-icon>
+                  <span>{{ flight.numberOfBookableSeats }} asientos</span>
+                </div>
+                <div class="stat">
+                  <mat-icon>flight_class</mat-icon>
+                  <span>{{ flight.travelerPricings?.[0]?.fareDetailsBySegment?.[0]?.cabin || 'Economy' }}</span>
+                </div>
+                <div class="stat" *ngIf="(flight.itineraries?.[0]?.segments?.length ?? 0) > 1">
+                  <mat-icon>connecting_airports</mat-icon>
+                  <span>{{ (flight.itineraries?.[0]?.segments?.length ?? 0) - 1 }} escala(s)</span>
+                </div>
+                <div class="stat" *ngIf="(flight.itineraries?.[0]?.segments?.length ?? 0) === 1">
+                  <mat-icon>check_circle</mat-icon>
+                  <span class="direct-badge">Directo</span>
+                </div>
+              </div>
+            </mat-card-content>
+            
+            <mat-card-actions>
+              <button mat-button class="view-btn">
+                {{ selectedFlight === flight ? 'Ocultar' : 'Ver' }} Detalles
+                <mat-icon>{{ selectedFlight === flight ? 'expand_less' : 'expand_more' }}</mat-icon>
+              </button>
+            </mat-card-actions>
+          </mat-card>
+
+          <!-- Panel de Detalles Expandible -->
+          <div class="flight-details-panel" *ngIf="selectedFlight === flight" @slideDown>
+            <mat-card class="details-card">
+              <mat-card-content>
+                <div class="details-content">
+                  <!-- Información del vuelo -->
+                  <div class="detail-section">
+                    <h3>
+                      <mat-icon>info</mat-icon>
+                      Información del Vuelo
+                    </h3>
+                    <div class="info-grid">
+                      <div class="info-item">
+                        <span class="label">Aerolínea:</span>
+                        <span class="value">{{ getAirlineName(flight.validatingAirlineCodes?.[0]) }}</span>
+                      </div>
+                      <div class="info-item">
+                        <span class="label">Número de Vuelo:</span>
+                        <span class="value">{{ flight.itineraries?.[0]?.segments?.[0]?.carrierCode }} {{ flight.itineraries?.[0]?.segments?.[0]?.number }}</span>
+                      </div>
+                      <div class="info-item">
+                        <span class="label">Duración:</span>
+                        <span class="value">{{ formatDuration(flight.itineraries?.[0]?.duration) }}</span>
+                      </div>
+                      <div class="info-item">
+                        <span class="label">Clase:</span>
+                        <span class="value">{{ flight.travelerPricings?.[0]?.fareDetailsBySegment?.[0]?.cabin }}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Segmentos -->
+                  <div class="detail-section" *ngIf="flight.itineraries?.[0]?.segments">
+                    <h3>
+                      <mat-icon>connecting_airports</mat-icon>
+                      Itinerario
+                    </h3>
+                    <div class="segments-list">
+                      <div *ngFor="let segment of flight.itineraries[0].segments; let segIndex = index" class="segment-card">
+                        <div class="segment-header">
+                          <mat-icon>flight</mat-icon>
+                          <span>Segmento {{ segIndex + 1 }}</span>
+                          <span class="segment-airline">{{ segment.carrierCode }} {{ segment.number }}</span>
+                        </div>
+                        <div class="segment-route">
+                          <div class="segment-point">
+                            <div class="seg-code">{{ segment.departure.iataCode }}</div>
+                            <div class="seg-time">{{ segment.departure.at | date:'dd MMM, HH:mm' }}</div>
+                          </div>
+                          <mat-icon class="arrow">arrow_forward</mat-icon>
+                          <div class="segment-point">
+                            <div class="seg-code">{{ segment.arrival.iataCode }}</div>
+                            <div class="seg-time">{{ segment.arrival.at | date:'dd MMM, HH:mm' }}</div>
+                          </div>
+                        </div>
+                        <div class="segment-duration">
+                          <mat-icon>schedule</mat-icon>
+                          {{ formatDuration(segment.duration) }}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Precio -->
+                  <div class="detail-section price-section">
+                    <h3>
+                      <mat-icon>euro</mat-icon>
+                      Detalles de Precio
+                    </h3>
+                    <div class="price-breakdown">
+                      <div class="price-item">
+                        <span>Precio Base:</span>
+                        <span>{{ flight.price?.base }}€</span>
+                      </div>
+                      <div class="price-item">
+                        <span>Tasas e Impuestos:</span>
+                        <span>{{ (parseFloat(flight.price?.total || '0') - parseFloat(flight.price?.base || '0')).toFixed(2) }}€</span>
+                      </div>
+                      <div class="price-item total">
+                        <span>Total:</span>
+                        <span>{{ flight.price?.total }}€</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Botón de acción -->
+                  <div class="detail-actions">
+                    <button mat-raised-button color="primary" class="book-btn">
+                      <mat-icon>book_online</mat-icon>
+                      Reservar por {{ flight.price?.total }}€
+                    </button>
+                    <button mat-button>
+                      <mat-icon>share</mat-icon>
+                      Compartir
+                    </button>
+                  </div>
+                </div>
+              </mat-card-content>
+            </mat-card>
           </div>
-          
-          <div class="flight-stats">
-            <div class="stat">
-              <mat-icon>airline_seat_recline_normal</mat-icon>
-              <span>{{ flight.numberOfBookableSeats }} asientos</span>
-            </div>
-            <div class="stat">
-              <mat-icon>flight_class</mat-icon>
-              <span>{{ flight.travelerPricings?.[0]?.fareDetailsBySegment?.[0]?.cabin || 'Economy' }}</span>
-            </div>
-            <div class="stat" *ngIf="(flight.itineraries?.[0]?.segments?.length ?? 0) > 1">
-              <mat-icon>connecting_airports</mat-icon>
-              <span>{{ (flight.itineraries?.[0]?.segments?.length ?? 0) - 1 }} escala(s)</span>
-            </div>
-            <div class="stat" *ngIf="(flight.itineraries?.[0]?.segments?.length ?? 0) === 1">
-              <mat-icon>check_circle</mat-icon>
-              <span class="direct-badge">Directo</span>
-            </div>
-          </div>
-        </mat-card-content>
-        
-        <mat-card-actions>
-          <button mat-button class="view-btn">
-            Ver Detalles
-            <mat-icon>arrow_forward</mat-icon>
-          </button>
-        </mat-card-actions>
-      </mat-card>
+        </div>
+      </div>
     </div>
   </div>
   
