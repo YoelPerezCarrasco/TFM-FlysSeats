@@ -386,6 +386,88 @@ class CosmosDBClient:
             logger.error(f"Error eliminando asiento {seat_id}: {e}")
             return False
     
+    # ==================== SWAPS ====================
+    
+    def get_swap(self, swap_id: str) -> Optional[Dict]:
+        """Obtiene un swap por ID"""
+        try:
+            container = self.get_container('swaps')
+            swap = container.read_item(item=swap_id, partition_key=swap_id)
+            return swap
+        except exceptions.CosmosResourceNotFoundError:
+            return None
+        except Exception as e:
+            logger.error(f"Error obteniendo swap {swap_id}: {e}")
+            return None
+    
+    def create_swap(self, swap_data: Dict) -> Dict:
+        """Crea una nueva solicitud de swap"""
+        try:
+            container = self.get_container('swaps')
+            swap = container.create_item(body=swap_data)
+            logger.info(f"Swap creado: {swap['id']}")
+            return swap
+        except Exception as e:
+            logger.error(f"Error creando swap: {e}")
+            raise
+    
+    def update_swap(self, swap_id: str, swap_data: Dict) -> Dict:
+        """Actualiza un swap"""
+        try:
+            container = self.get_container('swaps')
+            swap_data['id'] = swap_id
+            swap = container.upsert_item(body=swap_data)
+            logger.info(f"Swap actualizado: {swap_id}")
+            return swap
+        except Exception as e:
+            logger.error(f"Error actualizando swap {swap_id}: {e}")
+            raise
+    
+    def get_user_swaps(self, user_id: str, status_filter: str = None) -> List[Dict]:
+        """Obtiene todos los swaps de un usuario (como requester o partner)"""
+        try:
+            container = self.get_container('swaps')
+            query = """
+                SELECT * FROM c 
+                WHERE (c.requester.user_id = @user_id OR c.partner.user_id = @user_id)
+            """
+            parameters = [{"name": "@user_id", "value": user_id}]
+            
+            if status_filter:
+                query += " AND c.status = @status"
+                parameters.append({"name": "@status", "value": status_filter})
+            
+            query += " ORDER BY c.created_at DESC"
+            
+            items = list(container.query_items(
+                query=query,
+                parameters=parameters,
+                enable_cross_partition_query=True
+            ))
+            
+            return items
+        except Exception as e:
+            logger.error(f"Error obteniendo swaps del usuario {user_id}: {e}")
+            return []
+    
+    def get_flight_swaps(self, flight_id: str) -> List[Dict]:
+        """Obtiene todos los swaps de un vuelo"""
+        try:
+            container = self.get_container('swaps')
+            query = "SELECT * FROM c WHERE c.flight_id = @flight_id ORDER BY c.created_at DESC"
+            parameters = [{"name": "@flight_id", "value": flight_id}]
+            
+            items = list(container.query_items(
+                query=query,
+                parameters=parameters,
+                enable_cross_partition_query=True
+            ))
+            
+            return items
+        except Exception as e:
+            logger.error(f"Error obteniendo swaps del vuelo {flight_id}: {e}")
+            return []
+    
     # ==================== FLIGHT CACHE ====================
     
     def get_cached_flights(self, search_key: str) -> Optional[Dict]:

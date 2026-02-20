@@ -22,6 +22,11 @@ const routes: Routes = [
     canActivate: [AuthGuard]
   },
   {
+    path: 'swaps',
+    loadChildren: () => import('./features/swaps/swaps.routes').then(m => m.SWAPS_ROUTES),
+    canActivate: [AuthGuard]
+  },
+  {
     path: '**',
     redirectTo: 'flights'
   }

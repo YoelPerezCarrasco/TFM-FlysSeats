@@ -5,6 +5,7 @@ import { map, tap, catchError } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
 import { 
   Seat, 
+  SeatPreferences,
   JoinFlightRequest 
 } from '../models';
 
@@ -20,7 +21,8 @@ export class SeatService {
    * Get all seats for a flight
    */
   getFlightSeats(flightId: string): Observable<Seat[]> {
-    return this.http.get<Seat[]>(`${this.API_URL}/flights/${flightId}/seats`).pipe(
+    return this.http.get<{ seats: Seat[] }>(`${this.API_URL}/flights/${flightId}/seats`).pipe(
+      map(response => response.seats || []),
       catchError(error => {
         console.error('Error getting flight seats:', error);
         return of([]);
@@ -32,7 +34,8 @@ export class SeatService {
    * Join flight with a seat
    */
   joinFlight(flightId: string, seatData: JoinFlightRequest): Observable<Seat | null> {
-    return this.http.post<Seat>(`${this.API_URL}/flights/${flightId}/seats`, seatData).pipe(
+    return this.http.post<{ seat: Seat }>(`${this.API_URL}/flights/${flightId}/seats`, seatData).pipe(
+      map(response => response.seat),
       catchError(error => {
         console.error('Error joining flight:', error);
         throw error;
@@ -55,11 +58,20 @@ export class SeatService {
   /**
    * Update seat preferences
    */
-  updateSeatPreferences(seatId: string, updates: Partial<Seat>): Observable<Seat | null> {
-    return this.http.put<Seat>(`${this.API_URL}/seats/${seatId}`, updates).pipe(
+  updatePreferences(seatId: string, preferences: SeatPreferences, openToSwap: boolean = true): Observable<any> {
+    return this.http.put(`${this.API_URL}/seats/${seatId}/preferences`, {
+      preferences: {
+        desired_type: preferences.desired_type,
+        desired_section: preferences.desired_section,
+        together_seats: preferences.together_seats,
+        emergency_exit: preferences.emergency_exit,
+        importance_weights: preferences.importance_weights
+      },
+      open_to_swap: openToSwap
+    }).pipe(
       catchError(error => {
-        console.error('Error updating seat:', error);
-        return of(null);
+        console.error('Error updating preferences:', error);
+        throw error;
       })
     );
   }

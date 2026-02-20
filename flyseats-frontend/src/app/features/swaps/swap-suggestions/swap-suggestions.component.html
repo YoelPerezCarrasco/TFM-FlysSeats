@@ -1,0 +1,149 @@
+<div class="swap-suggestions-page">
+  <!-- Header -->
+  <div class="page-header">
+    <button mat-icon-button class="back-btn" (click)="goBack()">
+      <mat-icon>arrow_back</mat-icon>
+    </button>
+    <div class="header-text">
+      <h1>Sugerencias de Intercambio</h1>
+      <p *ngIf="yourSeat">Tu asiento actual: <strong>{{yourSeat.seat_number}}</strong></p>
+    </div>
+  </div>
+
+  <!-- Loading -->
+  <div class="loading-container" *ngIf="loading">
+    <mat-spinner diameter="48"></mat-spinner>
+    <p>Buscando los mejores matches...</p>
+  </div>
+
+  <!-- Error -->
+  <div class="error-container" *ngIf="!loading && errorMessage">
+    <mat-icon class="error-icon">warning</mat-icon>
+    <p>{{errorMessage}}</p>
+    <button mat-raised-button color="primary" (click)="goBack()">Volver</button>
+  </div>
+
+  <!-- Suggestions List -->
+  <div class="suggestions-container" *ngIf="!loading && !errorMessage">
+    
+    <!-- Your Seat Info -->
+    <mat-card class="your-seat-card" *ngIf="yourSeat">
+      <mat-card-content>
+        <div class="seat-info-row">
+          <mat-icon class="seat-icon">event_seat</mat-icon>
+          <div>
+            <span class="seat-label">Tu asiento</span>
+            <span class="seat-number">{{yourSeat.seat_number}}</span>
+          </div>
+          <div class="seat-details-chips">
+            <mat-chip-set>
+              <mat-chip *ngIf="yourSeat.seat_details?.type">
+                <mat-icon matChipAvatar>{{getSeatTypeIcon(yourSeat.seat_details.type)}}</mat-icon>
+                {{getSeatTypeLabel(yourSeat.seat_details.type)}}
+              </mat-chip>
+              <mat-chip *ngIf="yourSeat.seat_details?.section">
+                {{getSectionLabel(yourSeat.seat_details.section)}}
+              </mat-chip>
+            </mat-chip-set>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- No Suggestions -->
+    <div class="no-suggestions" *ngIf="suggestions.length === 0">
+      <mat-icon>search_off</mat-icon>
+      <h3>No hay sugerencias disponibles</h3>
+      <p>No se encontraron matches compatibles en este vuelo. Prueba a ajustar tus preferencias.</p>
+    </div>
+
+    <!-- Suggestion Cards -->
+    <div class="suggestions-grid">
+      <mat-card class="suggestion-card" *ngFor="let suggestion of suggestions; let i = index">
+        <mat-card-content>
+          
+          <!-- Score Badge -->
+          <div class="score-section">
+            <div class="score-badge" [style.borderColor]="getScoreColor(suggestion.match_score)">
+              <span class="score-value" [style.color]="getScoreColor(suggestion.match_score)">
+                {{suggestion.match_score}}
+              </span>
+              <span class="score-unit">pts</span>
+            </div>
+            <span class="score-label" [style.color]="getScoreColor(suggestion.match_score)">
+              {{getScoreLabel(suggestion.match_score)}}
+            </span>
+            <mat-progress-bar 
+              mode="determinate" 
+              [value]="suggestion.match_score"
+              [color]="suggestion.match_score >= 50 ? 'primary' : 'warn'">
+            </mat-progress-bar>
+          </div>
+
+          <!-- Swap Visual -->
+          <div class="swap-visual">
+            <div class="seat-box your">
+              <span class="box-label">Tu asiento</span>
+              <span class="box-number">{{suggestion.your_seat}}</span>
+              <span class="box-type" *ngIf="suggestion.your_seat_details?.type">
+                {{getSeatTypeLabel(suggestion.your_seat_details.type)}}
+              </span>
+            </div>
+            <div class="swap-arrow">
+              <mat-icon>swap_horiz</mat-icon>
+            </div>
+            <div class="seat-box theirs">
+              <span class="box-label">Su asiento</span>
+              <span class="box-number">{{suggestion.their_seat}}</span>
+              <span class="box-type" *ngIf="suggestion.their_seat_details?.type">
+                {{getSeatTypeLabel(suggestion.their_seat_details.type)}}
+              </span>
+            </div>
+          </div>
+
+          <!-- Partner Info -->
+          <div class="partner-info">
+            <div class="partner-avatar">
+              {{suggestion.partner_user.name?.charAt(0) || '?'}}
+            </div>
+            <div class="partner-details">
+              <span class="partner-name">{{suggestion.partner_user.name}}</span>
+              <div class="partner-reputation" *ngIf="suggestion.partner_user.reputation && suggestion.partner_user.reputation.total_swaps > 0">
+                <mat-icon class="star-icon">star</mat-icon>
+                <span>{{suggestion.partner_user.reputation.rating | number:'1.1-1'}}</span>
+                <span class="rep-divider">•</span>
+                <span>{{suggestion.partner_user.reputation.completed_swaps}} swaps</span>
+              </div>
+              <span class="new-user" *ngIf="!suggestion.partner_user.reputation?.total_swaps">Nuevo usuario</span>
+            </div>
+          </div>
+
+          <!-- Seat Details -->
+          <div class="details-chips">
+            <mat-chip-set>
+              <mat-chip *ngIf="suggestion.their_seat_details?.section">
+                Zona {{getSectionLabel(suggestion.their_seat_details.section)}}
+              </mat-chip>
+              <mat-chip *ngIf="suggestion.their_seat_details?.is_emergency_exit">
+                <mat-icon matChipAvatar>emergency</mat-icon>
+                Salida emergencia
+              </mat-chip>
+              <mat-chip *ngIf="suggestion.their_seat_details?.extra_legroom">
+                <mat-icon matChipAvatar>straighten</mat-icon>
+                Extra legroom
+              </mat-chip>
+            </mat-chip-set>
+          </div>
+
+          <!-- Action -->
+          <button mat-raised-button color="primary" class="request-btn"
+                  (click)="requestSwap(suggestion)"
+                  [disabled]="requesting">
+            <mat-icon>swap_horiz</mat-icon>
+            Solicitar intercambio
+          </button>
+        </mat-card-content>
+      </mat-card>
+    </div>
+  </div>
+</div>

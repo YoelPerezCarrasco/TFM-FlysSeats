@@ -1,0 +1,214 @@
+<div class="swap-list-container">
+  <!-- Header -->
+  <div class="page-header">
+    <div class="header-content">
+      <mat-icon class="header-icon">swap_horiz</mat-icon>
+      <div>
+        <h1>Mis Intercambios</h1>
+        <p class="subtitle">Gestiona tus solicitudes de intercambio de asiento</p>
+      </div>
+    </div>
+    <button mat-icon-button (click)="loadSwaps()" [disabled]="loading" class="refresh-btn">
+      <mat-icon>refresh</mat-icon>
+    </button>
+  </div>
+
+  <!-- Loading -->
+  <div *ngIf="loading" class="loading-container">
+    <mat-spinner diameter="48"></mat-spinner>
+    <p>Cargando intercambios...</p>
+  </div>
+
+  <!-- Empty state -->
+  <div *ngIf="!loading && swaps.length === 0" class="empty-state">
+    <mat-icon class="empty-icon">swap_horiz</mat-icon>
+    <h2>No tienes intercambios</h2>
+    <p>Busca vuelos y solicita intercambios de asiento con otros pasajeros.</p>
+    <button mat-flat-button color="primary" routerLink="/flights">
+      <mat-icon>search</mat-icon>
+      Buscar vuelos
+    </button>
+  </div>
+
+  <!-- Tabs content -->
+  <mat-tab-group *ngIf="!loading && swaps.length > 0" class="swap-tabs" animationDuration="200ms">
+    <!-- Active / Pending -->
+    <mat-tab>
+      <ng-template mat-tab-label>
+        <mat-icon>hourglass_empty</mat-icon>
+        <span>Activos</span>
+        <span *ngIf="pendingSwaps.length > 0" class="tab-badge">{{ pendingSwaps.length }}</span>
+      </ng-template>
+
+      <div class="tab-content">
+        <div *ngIf="pendingSwaps.length === 0" class="empty-tab">
+          <p>No tienes intercambios activos</p>
+        </div>
+
+        <div class="swap-cards">
+          <mat-card *ngFor="let swap of pendingSwaps" class="swap-card"
+                    [class.needs-action]="needsAction(swap)">
+
+            <!-- Status badge -->
+            <div class="status-badge" [style.background-color]="getStatusColor(swap.status)">
+              <mat-icon>{{ getStatusIcon(swap.status) }}</mat-icon>
+              <span>{{ getStatusLabel(swap.status) }}</span>
+            </div>
+
+            <!-- Needs action indicator -->
+            <div *ngIf="needsAction(swap)" class="action-required">
+              <mat-icon>notifications_active</mat-icon>
+              <span>Requiere tu acción</span>
+            </div>
+
+            <!-- Swap visual -->
+            <div class="swap-visual">
+              <div class="seat-box your-seat">
+                <span class="seat-label">Tu asiento</span>
+                <span class="seat-number">{{ isRequester(swap) ? swap.requester.current_seat : swap.partner.current_seat }}</span>
+              </div>
+
+              <div class="swap-arrow">
+                <mat-icon>swap_horiz</mat-icon>
+              </div>
+
+              <div class="seat-box partner-seat">
+                <span class="seat-label">Su asiento</span>
+                <span class="seat-number">{{ isRequester(swap) ? swap.partner.current_seat : swap.requester.current_seat }}</span>
+              </div>
+            </div>
+
+            <!-- Score -->
+            <div *ngIf="swap.match_score" class="match-score">
+              <div class="score-bar">
+                <div class="score-fill" [style.width.%]="swap.match_score"></div>
+              </div>
+              <span class="score-value">{{ swap.match_score | number:'1.0-0' }} pts</span>
+            </div>
+
+            <!-- Confirmation status -->
+            <div class="confirmation-status">
+              <div class="confirm-item" [class.confirmed]="swap.requester_confirmed">
+                <mat-icon>{{ swap.requester_confirmed ? 'check_circle' : 'radio_button_unchecked' }}</mat-icon>
+                <span>{{ isRequester(swap) ? 'Tú' : 'Solicitante' }}</span>
+              </div>
+              <div class="confirm-item" [class.confirmed]="swap.partner_confirmed">
+                <mat-icon>{{ swap.partner_confirmed ? 'check_circle' : 'radio_button_unchecked' }}</mat-icon>
+                <span>{{ isPartner(swap) ? 'Tú' : 'Compañero' }}</span>
+              </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="card-actions" *ngIf="needsAction(swap)">
+              <button mat-flat-button class="accept-btn" (click)="acceptSwap(swap)" [disabled]="processing">
+                <mat-icon>check</mat-icon>
+                Aceptar
+              </button>
+              <button mat-stroked-button class="reject-btn" (click)="rejectSwap(swap)" [disabled]="processing">
+                <mat-icon>close</mat-icon>
+                Rechazar
+              </button>
+            </div>
+
+            <!-- Waiting indicator -->
+            <div *ngIf="!needsAction(swap) && swap.status !== 'completed'" class="waiting-indicator">
+              <mat-icon>hourglass_top</mat-icon>
+              <span>Esperando confirmación del otro pasajero...</span>
+            </div>
+
+            <!-- Date -->
+            <div class="swap-date">
+              <mat-icon>schedule</mat-icon>
+              <span>{{ swap.created_at | date:'dd/MM/yyyy HH:mm' }}</span>
+            </div>
+          </mat-card>
+        </div>
+      </div>
+    </mat-tab>
+
+    <!-- Completed -->
+    <mat-tab>
+      <ng-template mat-tab-label>
+        <mat-icon>check_circle</mat-icon>
+        <span>Completados</span>
+        <span *ngIf="completedSwaps.length > 0" class="tab-badge completed">{{ completedSwaps.length }}</span>
+      </ng-template>
+
+      <div class="tab-content">
+        <div *ngIf="completedSwaps.length === 0" class="empty-tab">
+          <p>No tienes intercambios completados</p>
+        </div>
+
+        <div class="swap-cards">
+          <mat-card *ngFor="let swap of completedSwaps" class="swap-card completed-card">
+            <div class="status-badge" [style.background-color]="getStatusColor(swap.status)">
+              <mat-icon>{{ getStatusIcon(swap.status) }}</mat-icon>
+              <span>{{ getStatusLabel(swap.status) }}</span>
+            </div>
+
+            <div class="swap-visual">
+              <div class="seat-box your-seat">
+                <span class="seat-label">Era tu asiento</span>
+                <span class="seat-number">{{ isRequester(swap) ? swap.requester.current_seat : swap.partner.current_seat }}</span>
+              </div>
+              <div class="swap-arrow done">
+                <mat-icon>done_all</mat-icon>
+              </div>
+              <div class="seat-box partner-seat">
+                <span class="seat-label">Nuevo asiento</span>
+                <span class="seat-number">{{ isRequester(swap) ? swap.partner.current_seat : swap.requester.current_seat }}</span>
+              </div>
+            </div>
+
+            <div class="swap-date">
+              <mat-icon>schedule</mat-icon>
+              <span>{{ swap.updated_at | date:'dd/MM/yyyy HH:mm' }}</span>
+            </div>
+          </mat-card>
+        </div>
+      </div>
+    </mat-tab>
+
+    <!-- Rejected / Expired -->
+    <mat-tab>
+      <ng-template mat-tab-label>
+        <mat-icon>cancel</mat-icon>
+        <span>Rechazados</span>
+      </ng-template>
+
+      <div class="tab-content">
+        <div *ngIf="rejectedSwaps.length === 0" class="empty-tab">
+          <p>No tienes intercambios rechazados</p>
+        </div>
+
+        <div class="swap-cards">
+          <mat-card *ngFor="let swap of rejectedSwaps" class="swap-card rejected-card">
+            <div class="status-badge" [style.background-color]="getStatusColor(swap.status)">
+              <mat-icon>{{ getStatusIcon(swap.status) }}</mat-icon>
+              <span>{{ getStatusLabel(swap.status) }}</span>
+            </div>
+
+            <div class="swap-visual faded">
+              <div class="seat-box your-seat">
+                <span class="seat-label">Tu asiento</span>
+                <span class="seat-number">{{ isRequester(swap) ? swap.requester.current_seat : swap.partner.current_seat }}</span>
+              </div>
+              <div class="swap-arrow">
+                <mat-icon>block</mat-icon>
+              </div>
+              <div class="seat-box partner-seat">
+                <span class="seat-label">Su asiento</span>
+                <span class="seat-number">{{ isRequester(swap) ? swap.partner.current_seat : swap.requester.current_seat }}</span>
+              </div>
+            </div>
+
+            <div class="swap-date">
+              <mat-icon>schedule</mat-icon>
+              <span>{{ swap.created_at | date:'dd/MM/yyyy HH:mm' }}</span>
+            </div>
+          </mat-card>
+        </div>
+      </div>
+    </mat-tab>
+  </mat-tab-group>
+</div>

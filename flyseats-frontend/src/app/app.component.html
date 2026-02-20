@@ -25,6 +25,10 @@
         <mat-icon>confirmation_number</mat-icon>
         <span>Mis Reservas</span>
       </a>
+      <a routerLink="/swaps" *ngIf="currentUser$ | async" routerLinkActive="active" class="nav-link">
+        <mat-icon>swap_horiz</mat-icon>
+        <span>Intercambios</span>
+      </a>
     </div>
 
     <!-- Right Section -->
@@ -92,6 +96,11 @@
     <a routerLink="/bookings" *ngIf="currentUser$ | async" routerLinkActive="active" class="mobile-nav-link" (click)="closeMobileMenu()">
       <mat-icon>confirmation_number</mat-icon>
       <span>Mis Reservas</span>
+      <mat-icon class="arrow">chevron_right</mat-icon>
+    </a>
+    <a routerLink="/swaps" *ngIf="currentUser$ | async" routerLinkActive="active" class="mobile-nav-link" (click)="closeMobileMenu()">
+      <mat-icon>swap_horiz</mat-icon>
+      <span>Intercambios</span>
       <mat-icon class="arrow">chevron_right</mat-icon>
     </a>
 
