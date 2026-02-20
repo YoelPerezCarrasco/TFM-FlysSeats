@@ -226,7 +226,7 @@
                       Itinerario
                     </h3>
                     <div class="segments-list">
-                      <div *ngFor="let segment of flight.itineraries[0].segments; let segIndex = index" class="segment-card">
+                      <div *ngFor="let segment of (flight.itineraries?.[0]?.segments || []); let segIndex = index" class="segment-card">
                         <div class="segment-header">
                           <mat-icon>flight</mat-icon>
                           <span>Segmento {{ segIndex + 1 }}</span>
