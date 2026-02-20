@@ -9,7 +9,7 @@ import { Observable } from 'rxjs';
   styleUrls: ['./app.component.scss']
 })
 export class AppComponent implements OnInit {
-  title = 'flyseats-frontend';
+  title = 'sitfly-frontend';
   currentUser$: Observable<User | null>;
   isScrolled = false;
   mobileMenuOpen = false;

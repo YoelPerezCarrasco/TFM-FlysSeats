@@ -1,5 +1,5 @@
 /**
- * TypeScript models for FlysSeats application
+ * TypeScript models for SitFly application
  * Matches backend Pydantic models
  */
 
@@ -64,7 +64,7 @@ export interface Aircraft {
 }
 
 export interface Flight {
-  // Legacy FlysSeats properties
+  // Legacy SitFly properties
   id: string;
   type: string;
   flight_number?: string;

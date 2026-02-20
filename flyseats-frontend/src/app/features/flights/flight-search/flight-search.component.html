@@ -1,9 +1,9 @@
-<div class="flight-search-page">
+<div class="flight-search-page" [class.home-view]="showHome && !loading">
   <!-- HOME: Hero Section - Solo visible cuando showHome -->
   <div class="hero-section" *ngIf="showHome && !loading">
     <div class="hero-content">
       <h1 class="hero-title animate-fade-in">
-        <span class="gradient-text">FlysSeats</span>
+        <span class="gradient-text">SitFly</span>
       </h1>
       <p class="hero-subtitle animate-fade-in">Encuentra tu vuelo y haz match con otros pasajeros para intercambiar asientos</p>
     </div>
