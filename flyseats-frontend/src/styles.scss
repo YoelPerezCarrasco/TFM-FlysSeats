@@ -96,11 +96,87 @@ body {
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   border: 1px solid var(--border-color);
   background: var(--bg-card) !important;
+  color: #ffffff !important;
+}
+
+.mat-mdc-card .mat-mdc-card-title,
+.mat-mdc-card .mat-mdc-card-subtitle {
+  color: #ffffff !important;
 }
 
 .mat-mdc-card:hover {
   box-shadow: var(--shadow-md) !important;
   transform: translateY(-4px);
+}
+
+/* Force white text on all Material components */
+.mat-mdc-menu-panel {
+  background: #1e1e32 !important;
+  color: #ffffff !important;
+}
+
+.mat-mdc-menu-item {
+  color: #ffffff !important;
+}
+
+.mat-mdc-menu-item .mat-icon {
+  color: #a0aec0 !important;
+}
+
+.mat-mdc-menu-item:hover .mat-icon {
+  color: #ff6b6b !important;
+}
+
+.mat-mdc-dialog-container {
+  background: #1e1e32 !important;
+  color: #ffffff !important;
+}
+
+.mat-mdc-form-field .mdc-text-field--filled {
+  background: rgba(255, 255, 255, 0.05) !important;
+}
+
+.mat-mdc-form-field .mat-mdc-input-element,
+.mat-mdc-form-field input,
+.mat-mdc-form-field textarea {
+  color: #ffffff !important;
+}
+
+.mat-mdc-form-field .mat-mdc-floating-label,
+.mat-mdc-form-field label {
+  color: #a0aec0 !important;
+}
+
+.mat-mdc-select-value,
+.mat-mdc-select-arrow {
+  color: #ffffff !important;
+}
+
+.mat-mdc-option {
+  color: #ffffff !important;
+}
+
+.mat-mdc-checkbox .mdc-label,
+.mat-mdc-radio-button .mdc-label,
+.mat-mdc-slide-toggle .mdc-label {
+  color: #ffffff !important;
+}
+
+.mat-mdc-tab .mdc-tab__text-label {
+  color: #a0aec0 !important;
+}
+
+.mat-mdc-tab--active .mdc-tab__text-label {
+  color: #ff6b6b !important;
+}
+
+.mat-mdc-snack-bar-container {
+  background: #1e1e32 !important;
+  color: #ffffff !important;
+}
+
+.mat-divider {
+  border-color: rgba(255, 107, 107, 0.15) !important;
 }
 
 .mat-mdc-raised-button {

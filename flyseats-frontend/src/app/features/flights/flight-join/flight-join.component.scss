@@ -2,6 +2,7 @@
   padding: 20px;
   max-width: 800px;
   margin: 0 auto;
+  color: #ffffff;
 }
 
 mat-card-avatar {
@@ -13,14 +14,14 @@ mat-card-avatar {
 h3 {
   margin-top: 24px;
   margin-bottom: 16px;
-  color: #1976d2;
+  color: #ff6b6b;
 }
 
 h4 {
   margin-top: 16px;
   margin-bottom: 12px;
   font-size: 14px;
-  color: #666;
+  color: #a0aec0;
 }
 
 .full-width {
@@ -38,8 +39,9 @@ h4 {
 .preferences-section {
   margin-top: 20px;
   padding: 20px;
-  background-color: #f5f5f5;
+  background-color: #1e1e32;
   border-radius: 8px;
+  color: #ffffff;
 }
 
 .slider-group {
@@ -52,6 +54,7 @@ h4 {
 .slider-group label {
   min-width: 140px;
   font-weight: 500;
+  color: #ffffff;
 }
 
 .slider-group mat-slider {
@@ -62,7 +65,7 @@ h4 {
   min-width: 30px;
   text-align: center;
   font-weight: bold;
-  color: #1976d2;
+  color: #ff6b6b;
 }
 
 .actions {
