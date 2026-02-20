@@ -52,7 +52,7 @@ export class FlightDetailComponent implements OnInit {
       this.flight = state.flight;
       this.loading = false;
       // Solo cargar asientos si el vuelo tiene ID (vuelos de BD)
-      if (this.flight.id) {
+      if (this.flight?.id) {
         this.loadSeats(this.flight.id);
       }
     } else {
