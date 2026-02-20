@@ -427,43 +427,61 @@
 
 /* User Dropdown */
 ::ng-deep .user-dropdown {
-  min-width: 280px;
+  min-width: 300px;
+  background: #1e1e32;
+  border: 1px solid rgba(255, 107, 107, 0.2);
 }
 
 .menu-header {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 16px;
+  gap: 16px;
+  padding: 20px 16px;
+  background: rgba(255, 107, 107, 0.08);
+  margin: -8px -8px 8px -8px;
+  border-radius: 12px 12px 0 0;
 }
 
 .avatar-menu {
-  width: 48px;
-  height: 48px;
+  width: 56px;
+  height: 56px;
   border-radius: 50%;
   background: linear-gradient(135deg, #ff6b6b 0%, #fe8a71 100%);
   display: flex;
   align-items: center;
   justify-content: center;
   color: white;
+  flex-shrink: 0;
+  box-shadow: 0 4px 12px rgba(255, 107, 107, 0.3);
 }
 
 .avatar-menu mat-icon {
-  font-size: 28px;
-  width: 28px;
-  height: 28px;
+  font-size: 32px;
+  width: 32px;
+  height: 32px;
+}
+
+.user-info {
+  flex: 1;
+  min-width: 0;
 }
 
 .user-info .name {
-  font-size: 15px;
+  font-size: 16px;
   font-weight: 700;
   color: #ffffff;
   margin-bottom: 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .user-info .email {
   font-size: 13px;
   color: #a0aec0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 /* Main Content */
