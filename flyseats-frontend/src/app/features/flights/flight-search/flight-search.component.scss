@@ -719,55 +719,57 @@
   border-top: none;
   border-top-left-radius: 0;
   border-top-right-radius: 0;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3) !important;
+  border-bottom-left-radius: 12px;
+  border-bottom-right-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2) !important;
   background: #1a1a2e !important;
-  margin-bottom: 20px;
+  margin: 0 0 16px 0;
   border: 1px solid rgba(255, 107, 107, 0.15) !important;
   border-top: none !important;
 }
 
 .details-content {
-  padding: 20px;
+  padding: 14px 16px;
 }
 
 .detail-section {
-  margin-bottom: 32px;
+  margin-bottom: 16px;
   
   h3 {
     display: flex;
     align-items: center;
-    gap: 8px;
-    font-size: 18px;
+    gap: 6px;
+    font-size: 15px;
     font-weight: 600;
     color: #ffffff;
-    margin: 0 0 16px 0;
+    margin: 0 0 10px 0;
     
     mat-icon {
       color: #ff6b6b;
-      font-size: 22px;
-      width: 22px;
-      height: 22px;
+      font-size: 18px;
+      width: 18px;
+      height: 18px;
     }
   }
 }
 
 .info-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 16px;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 10px;
 }
 
 .info-item {
   display: flex;
   flex-direction: column;
-  gap: 4px;
-  padding: 12px;
+  gap: 2px;
+  padding: 8px 10px;
   background: rgba(255, 107, 107, 0.05);
-  border-radius: 8px;
+  border-radius: 6px;
   border-left: 3px solid #ff6b6b;
   
   .label {
-    font-size: 12px;
+    font-size: 11px;
     font-weight: 500;
     color: #a0aec0;
     text-transform: uppercase;
@@ -775,7 +777,7 @@
   }
   
   .value {
-    font-size: 16px;
+    font-size: 14px;
     font-weight: 600;
     color: #ffffff;
   }
@@ -790,28 +792,29 @@
 
 .segment-card {
   background: rgba(255, 107, 107, 0.05);
-  border-radius: 12px;
-  padding: 16px;
+  border-radius: 8px;
+  padding: 10px 12px;
   border: 1px solid rgba(255, 107, 107, 0.2);
 }
 
 .segment-header {
   display: flex;
   align-items: center;
-  gap: 8px;
-  margin-bottom: 12px;
+  gap: 6px;
+  margin-bottom: 8px;
   font-weight: 600;
+  font-size: 13px;
   color: #ff6b6b;
   
   mat-icon {
-    font-size: 20px;
-    width: 20px;
-    height: 20px;
+    font-size: 16px;
+    width: 16px;
+    height: 16px;
   }
   
   .segment-airline {
     margin-left: auto;
-    font-size: 14px;
+    font-size: 12px;
     color: #ffffff;
   }
 }
@@ -820,45 +823,45 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 16px;
-  margin-bottom: 12px;
+  gap: 12px;
+  margin-bottom: 6px;
 }
 
 .segment-point {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 2px;
   
   .seg-code {
-    font-size: 20px;
+    font-size: 16px;
     font-weight: 700;
     color: #ffffff;
   }
   
   .seg-time {
-    font-size: 12px;
+    font-size: 11px;
     color: #a0aec0;
   }
 }
 
 .segment-route .arrow {
   color: #ff6b6b;
-  font-size: 24px;
-  width: 24px;
-  height: 24px;
+  font-size: 20px;
+  width: 20px;
+  height: 20px;
 }
 
 .segment-duration {
   display: flex;
   align-items: center;
-  gap: 6px;
-  font-size: 13px;
+  gap: 4px;
+  font-size: 12px;
   color: #a0aec0;
   
   mat-icon {
-    font-size: 16px;
-    width: 16px;
-    height: 16px;
+    font-size: 14px;
+    width: 14px;
+    height: 14px;
     color: #ff6b6b;
   }
 }
@@ -866,28 +869,28 @@
 /* Precio */
 .price-section {
   background: linear-gradient(135deg, rgba(255, 107, 107, 0.08) 0%, rgba(254, 138, 113, 0.08) 100%);
-  padding: 20px;
-  border-radius: 12px;
-  border: 2px solid rgba(255, 107, 107, 0.2);
+  padding: 12px 14px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 107, 107, 0.2);
 }
 
 .price-breakdown {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 6px;
 }
 
 .price-item {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-size: 15px;
+  font-size: 13px;
   color: #ffffff;
   
   &.total {
-    padding-top: 12px;
-    border-top: 2px solid rgba(255, 107, 107, 0.3);
-    font-size: 20px;
+    padding-top: 8px;
+    border-top: 1px solid rgba(255, 107, 107, 0.3);
+    font-size: 16px;
     font-weight: 700;
     color: #ff6b6b;
   }
@@ -896,21 +899,21 @@
 /* Actions */
 .detail-actions {
   display: flex;
-  gap: 12px;
+  gap: 10px;
   justify-content: center;
-  margin-top: 24px;
+  margin-top: 14px;
 }
 
 .book-btn {
   flex: 1;
-  max-width: 300px;
-  padding: 12px 24px;
-  font-size: 16px;
+  max-width: 250px;
+  padding: 8px 20px;
+  font-size: 14px;
   font-weight: 600;
   box-shadow: 0 4px 12px rgba(255, 107, 107, 0.3);
   
   mat-icon {
-    margin-right: 8px;
+    margin-right: 6px;
   }
 }
 
