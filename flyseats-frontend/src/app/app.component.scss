@@ -430,8 +430,29 @@
 /* User Dropdown */
 ::ng-deep .user-dropdown {
   min-width: 300px;
-  background: #1e1e32;
+  background: #1e1e32 !important;
   border: 1px solid rgba(255, 107, 107, 0.2);
+  overflow: visible !important;
+  margin-top: 16px !important;
+  position: relative;
+}
+
+::ng-deep .user-dropdown .mat-mdc-menu-panel {
+  overflow: visible !important;
+}
+
+::ng-deep .user-dropdown::before {
+  content: '';
+  position: absolute;
+  top: -8px;
+  right: 16px;
+  width: 14px;
+  height: 14px;
+  background: #1e1e32;
+  border-top: 1px solid rgba(255, 107, 107, 0.2);
+  border-left: 1px solid rgba(255, 107, 107, 0.2);
+  transform: rotate(45deg);
+  z-index: 1;
 }
 
 .menu-header {
