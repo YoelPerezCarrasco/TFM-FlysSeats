@@ -1,19 +1,20 @@
 /* Modern Design System - FlysSeats */
 
 :root {
-  --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  --secondary-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  --primary-gradient: linear-gradient(135deg, #ff6b6b 0%, #fe8a71 100%);
+  --secondary-gradient: linear-gradient(135deg, #ff6b6b 0%, #ff9a8b 100%);
   --success-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-  --accent-gradient: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+  --accent-gradient: linear-gradient(135deg, #ff6b6b 0%, #fe8a71 100%);
   
-  --bg-primary: #f8f9fe;
-  --bg-card: #ffffff;
-  --text-primary: #2d3748;
-  --text-secondary: #718096;
-  --border-color: #e2e8f0;
-  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.08);
-  --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.12);
-  --shadow-lg: 0 16px 48px rgba(0, 0, 0, 0.15);
+  --bg-primary: #0f0f23;
+  --bg-secondary: #1a1a2e;
+  --bg-card: #1e1e32;
+  --text-primary: #ffffff;
+  --text-secondary: #a0aec0;
+  --border-color: rgba(255, 107, 107, 0.2);
+  --shadow-sm: 0 2px 8px rgba(255, 107, 107, 0.15);
+  --shadow-md: 0 8px 24px rgba(255, 107, 107, 0.25);
+  --shadow-lg: 0 16px 48px rgba(255, 107, 107, 0.35);
   --radius-sm: 12px;
   --radius-md: 16px;
   --radius-lg: 24px;
@@ -48,12 +49,12 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #ff6b6b 0%, #fe8a71 100%);
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+  background: linear-gradient(135deg, #fe8a71 0%, #ff6b6b 100%);
 }
 
 /* Global animations */
@@ -113,11 +114,11 @@ body {
 
 .mat-mdc-raised-button.mat-primary {
   background: var(--primary-gradient) !important;
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4) !important;
+  box-shadow: 0 4px 12px rgba(255, 107, 107, 0.4) !important;
 }
 
 .mat-mdc-raised-button.mat-primary:hover {
-  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5) !important;
+  box-shadow: 0 6px 20px rgba(255, 107, 107, 0.5) !important;
   transform: translateY(-2px);
 }
 
@@ -136,10 +137,10 @@ body {
 
 /* Glass morphism effect */
 .glass-card {
-  background: rgba(255, 255, 255, 0.7);
+  background: rgba(26, 26, 46, 0.7);
   backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(255, 107, 107, 0.3);
+  box-shadow: 0 8px 32px rgba(255, 107, 107, 0.2);
 }
 
 /* Gradient text */
