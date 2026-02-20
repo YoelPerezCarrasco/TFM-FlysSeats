@@ -140,7 +140,11 @@ export class FlightSearchComponent implements OnInit {
   }
 
   onFlightClick(flight: Flight): void {
-    this.router.navigate(['/flights', flight.id]);
+    // Pasar el vuelo completo en el state para evitar llamada al backend
+    // Esto funciona tanto para vuelos de Amadeus como de la BD
+    this.router.navigate(['/flights', flight.id || 'amadeus'], {
+      state: { flight }
+    });
   }
 
   onCreateFlight(): void {

@@ -21,31 +21,31 @@
             <mat-icon>flight</mat-icon>
           </div>
           <div>
-            <h1>{{ flight.airline }}</h1>
-            <p class="flight-number">{{ flight.flight_number }}</p>
+            <h1>{{ getAirlineName() }}</h1>
+            <p class="flight-number">{{ getFlightNumber() }}</p>
           </div>
         </div>
         <mat-chip [class]="'status-chip status-' + (flight.status?.toLowerCase() || 'upcoming')">
-          {{ flight.status }}
+          {{ flight.status || 'Upcoming' }}
         </mat-chip>
       </div>
 
       <!-- Route Visualization -->
       <div class="route-section">
         <div class="route-point">
-          <div class="airport-code">{{ flight.departure?.airport_code }}</div>
+          <div class="airport-code">{{ getDepartureCode() }}</div>
           <div class="airport-details">
             <mat-icon>location_on</mat-icon>
             <div>
-              <div class="city">{{ flight.departure?.city }}</div>
-              <div class="country">{{ flight.departure?.country }}</div>
+              <div class="city">{{ flight.departure?.city || getDepartureCode() }}</div>
+              <div class="country">{{ flight.departure?.country || 'España' }}</div>
             </div>
           </div>
           <div class="datetime">
             <mat-icon>schedule</mat-icon>
             <div>
-              <div class="date">{{ formatDate(flight.departure?.date) }}</div>
-              <div class="time">{{ flight.departure?.time }}</div>
+              <div class="date">{{ getDepartureDate() }}</div>
+              <div class="time">{{ getDepartureTime() }}</div>
             </div>
           </div>
         </div>
@@ -58,19 +58,19 @@
         </div>
 
         <div class="route-point">
-          <div class="airport-code">{{ flight.arrival?.airport_code }}</div>
+          <div class="airport-code">{{ getArrivalCode() }}</div>
           <div class="airport-details">
             <mat-icon>location_on</mat-icon>
             <div>
-              <div class="city">{{ flight.arrival?.city }}</div>
-              <div class="country">{{ flight.arrival?.country }}</div>
+              <div class="city">{{ flight.arrival?.city || getArrivalCode() }}</div>
+              <div class="country">{{ flight.arrival?.country || 'España' }}</div>
             </div>
           </div>
           <div class="datetime">
             <mat-icon>schedule</mat-icon>
             <div>
-              <div class="date">{{ formatDate(flight.arrival?.date) }}</div>
-              <div class="time">{{ flight.arrival?.time }}</div>
+              <div class="date">{{ getArrivalDate() }}</div>
+              <div class="time">{{ getArrivalTime() }}</div>
             </div>
           </div>
         </div>
@@ -78,7 +78,29 @@
 
       <!-- Stats -->
       <div class="stats-grid">
-        <div class="stat-card">
+        <!-- Precio (solo para Amadeus) -->
+        <div class="stat-card" *ngIf="getPrice()">
+          <div class="stat-icon" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+            <mat-icon>euro</mat-icon>
+          </div>
+          <div class="stat-info">
+            <div class="stat-value">{{ getPrice() }}</div>
+            <div class="stat-label">Precio</div>
+          </div>
+        </div>
+
+        <!-- Asientos disponibles (Amadeus) o Pasajeros (BD) -->
+        <div class="stat-card" *ngIf="isAmadeusFlight()">
+          <div class="stat-icon" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
+            <mat-icon>airline_seat_recline_normal</mat-icon>
+          </div>
+          <div class="stat-info">
+            <div class="stat-value">{{ flight.numberOfBookableSeats || 0 }}</div>
+            <div class="stat-label">Asientos Disponibles</div>
+          </div>
+        </div>
+
+        <div class="stat-card" *ngIf="!isAmadeusFlight()">
           <div class="stat-icon" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
             <mat-icon>people</mat-icon>
           </div>
@@ -88,7 +110,18 @@
           </div>
         </div>
 
+        <!-- Clase de cabina -->
         <div class="stat-card">
+          <div class="stat-icon" style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);">
+            <mat-icon>flight_class</mat-icon>
+          </div>
+          <div class="stat-info">
+            <div class="stat-value">{{ getCabin() }}</div>
+            <div class="stat-label">Clase</div>
+          </div>
+        </div>
+
+        <div class="stat-card" *ngIf="!isAmadeusFlight()">
           <div class="stat-icon" style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);">
             <mat-icon>swap_horiz</mat-icon>
           </div>
@@ -110,9 +143,15 @@
       </div>
 
       <!-- Action Button -->
-      <button mat-raised-button color="primary" class="join-button" (click)="onJoinFlight()">
+      <button mat-raised-button color="primary" class="join-button" (click)="onJoinFlight()" *ngIf="!isAmadeusFlight() && flight.id">
         <mat-icon>add_circle</mat-icon>
         Unirme a este Vuelo
+      </button>
+
+      <!-- Booking Button para Amadeus -->
+      <button mat-raised-button color="primary" class="join-button" *ngIf="isAmadeusFlight()">
+        <mat-icon>book_online</mat-icon>
+        Reservar Vuelo - {{ getPrice() }}
       </button>
     </div>
 
