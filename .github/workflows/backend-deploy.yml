@@ -13,7 +13,7 @@ env:
   PYTHON_VERSION: '3.11'
 
 jobs:
-  build-and-deploy:
+  backend-ci:
     runs-on: ubuntu-latest
     
     steps:
@@ -24,6 +24,30 @@ jobs:
         with:
           python-version: ${{ env.PYTHON_VERSION }}
       
+      - name: Install dependencies
+        run: |
+          cd backend
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run backend smoke check
+        run: |
+          cd backend
+          LOCAL_MODE=true python -m py_compile app.py
+
+  deploy-to-azure:
+    if: github.event_name == 'workflow_dispatch' && secrets.AZURE_WEBAPP_PUBLISH_PROFILE != ''
+    needs: backend-ci
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
       - name: Install dependencies
         run: |
           cd backend

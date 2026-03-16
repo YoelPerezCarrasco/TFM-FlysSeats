@@ -1,6 +1,6 @@
 # FlysSeats - Flight Booking Platform
 
-A modern, full-stack flight booking application built with Angular 15+, Python Azure Functions, and deployed on Azure infrastructure.
+A modern, full-stack flight booking application built with Angular 15+ and a Python Flask backend, optimized for local-first development with Docker and MongoDB.
 
 ## ⚠️ Security Notice
 
@@ -24,7 +24,7 @@ A modern, full-stack flight booking application built with Angular 15+, Python A
 
 ### Backend
 - **Runtime**: Python 3.9+
-- **Platform**: Azure Functions (Serverless)
+- **Platform**: Flask API (Docker-ready)
 - **API**: RESTful endpoints
 - **Authentication**: JWT (planned)
 
@@ -33,8 +33,8 @@ A modern, full-stack flight booking application built with Angular 15+, Python A
 - **IaC**: Terraform
 - **CI/CD**: GitHub Actions
 - **Services**:
-  - Azure App Service (Frontend hosting)
-  - Azure Functions (Backend APIs)
+   - Azure App Service (optional cloud deployment)
+   - Flask Web App backend
   - Azure Storage Account
 
 ## 📁 Project Structure
@@ -51,11 +51,9 @@ TFM-FlysSeats/
 │   │       └── i18n/           # Translation files
 │   ├── cypress/                # E2E tests
 │   └── capacitor.config.ts     # Capacitor mobile configuration
-├── backend/                    # Python Azure Functions
-│   ├── functions/
-│   │   ├── auth/              # Authentication endpoints
-│   │   ├── flights/           # Flight search endpoints
-│   │   └── bookings/          # Booking management endpoints
+├── backend/                    # Python Flask backend
+│   ├── app.py                 # API entrypoint
+│   ├── utils/                 # DB/API clients
 │   └── requirements.txt
 ├── infrastructure/
 │   └── terraform/             # Infrastructure as Code
@@ -77,9 +75,9 @@ TFM-FlysSeats/
 - ✅ **Observables**: RxJS for reactive data management
 
 ### Backend Features
-- ✅ **REST APIs**: Azure Functions HTTP triggers
+- ✅ **REST APIs**: Flask endpoints
 - ✅ **CORS Enabled**: Cross-origin support
-- ✅ **Modular Functions**: Separate functions for auth, flights, bookings
+- ✅ **Modular Services**: auth, flights, bookings, swaps
 - ✅ **Mock Data**: Sample data for development
 
 ### Infrastructure Features
@@ -92,8 +90,7 @@ TFM-FlysSeats/
 ### Prerequisites
 - Node.js 18+ and npm
 - Python 3.9+
-- Azure CLI (for deployment)
-- Terraform (for infrastructure)
+- Docker + Docker Compose
 
 ### Frontend Setup
 
@@ -117,12 +114,41 @@ cd backend
 # Install Python dependencies
 pip install -r requirements.txt
 
-# Install Azure Functions Core Tools
-# https://docs.microsoft.com/en-us/azure/azure-functions/functions-run-local
+# Local-first mode (sin Azure)
+cp .env.example .env
+export LOCAL_MODE=true
+export DB_MODE=mongodb
 
-# Start local Azure Functions
-func start
+# Opcional: auto levantar mongo/redis por Docker al arrancar dev.sh
+# export AUTO_START_DOCKER_SERVICES=true
+
+# Start local backend (Flask)
+python app.py
 ```
+
+### Full Local Stack with Docker
+
+```bash
+# From project root
+docker compose up --build
+
+# Or using Makefile
+make docker-up
+```
+
+Services:
+- Frontend: http://localhost:4200
+- Backend API: http://localhost:8000/api
+- MongoDB: localhost:27017
+- Mongo Express (UI): http://localhost:8081
+- Redis: localhost:6379
+
+Seed de datos de ejemplo en Mongo:
+
+```bash
+make mongo-seed
+```
+
 
 ## 📱 Mobile Build (Capacitor)
 
@@ -179,34 +205,20 @@ terraform apply
 terraform destroy
 ```
 
-### Required Azure Secrets
-Configure these in GitHub repository secrets:
-- `ARM_CLIENT_ID`
-- `ARM_CLIENT_SECRET`
-- `ARM_SUBSCRIPTION_ID`
-- `ARM_TENANT_ID`
-- `AZURE_WEBAPP_NAME`
+### Required Azure Secrets (optional)
+Only needed if you manually trigger cloud deployment:
 - `AZURE_WEBAPP_PUBLISH_PROFILE`
-- `AZURE_FUNCTIONAPP_NAME`
-- `AZURE_FUNCTIONAPP_PUBLISH_PROFILE`
 
 ## 🚢 CI/CD Pipelines
 
-The project includes three GitHub Actions workflows:
+The project includes two active GitHub Actions workflows:
 
-1. **Frontend CI/CD** (`.github/workflows/frontend-ci-cd.yml`)
-   - Build Angular app
-   - Run tests
-   - Deploy to Azure App Service
+1. **Backend CI + optional deploy** (`.github/workflows/backend-deploy.yml`)
+   - Python checks on `push`
+   - Optional deploy on manual trigger (`workflow_dispatch`)
 
-2. **Backend CI/CD** (`.github/workflows/backend-ci-cd.yml`)
-   - Package Python functions
-   - Deploy to Azure Functions
-
-3. **Infrastructure** (`.github/workflows/terraform.yml`)
-   - Validate Terraform
-   - Plan infrastructure changes
-   - Apply changes on main branch
+2. **Health Check** (`.github/workflows/health-check.yml`)
+   - Manual API health validation (when `HEALTH_CHECK_URL` is configured)
 
 ## 🌍 Multi-language Support
 
@@ -245,8 +257,7 @@ This project uses Angular 15.2.10 which has known XSS vulnerabilities. See [SECU
 1. Clone repository
 2. Install frontend dependencies: `cd flyseats-frontend && npm install`
 3. Install backend dependencies: `cd backend && pip install -r requirements.txt`
-4. Start frontend: `npm start`
-5. Start backend: `func start`
+4. Start all local services (sin Azure): `make dev` o `bash scripts/dev.sh`
 6. Run tests: `npm test` and `npm run cypress:run`
 
 ## 📝 API Endpoints
@@ -281,6 +292,6 @@ Yoel Perez Carrasco
 ## 🙏 Acknowledgments
 
 - Angular Team
-- Azure Functions Team
+- Flask Team
 - Material Design Team
 - Open Source Community

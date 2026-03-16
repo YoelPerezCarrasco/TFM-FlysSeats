@@ -1,0 +1,75 @@
+services:
+  mongo:
+    image: mongo:7
+    container_name: sitfly-mongo
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+
+  mongo-express:
+    image: mongo-express:1
+    container_name: sitfly-mongo-express
+    environment:
+      ME_CONFIG_MONGODB_URL: mongodb://mongo:27017
+      ME_CONFIG_MONGODB_ENABLE_ADMIN: "true"
+      ME_CONFIG_BASICAUTH_USERNAME: ${MONGO_EXPRESS_USER:-admin}
+      ME_CONFIG_BASICAUTH_PASSWORD: ${MONGO_EXPRESS_PASSWORD:-admin123}
+    ports:
+      - "8081:8081"
+    depends_on:
+      - mongo
+
+  redis:
+    image: redis:7-alpine
+    container_name: sitfly-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: sitfly-backend
+    environment:
+      ENVIRONMENT: dev
+      LOCAL_MODE: "true"
+      DB_MODE: mongodb
+      MONGO_URI: mongodb://mongo:27017
+      MONGO_DATABASE: sitfly
+      LOCAL_DB_PATH: /app/data/local_db.json
+      PORT: 8000
+      REDIS_ENABLED: "true"
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_SSL: "false"
+      AMADEUS_API_KEY: ${AMADEUS_API_KEY:-}
+      AMADEUS_API_SECRET: ${AMADEUS_API_SECRET:-}
+    volumes:
+      - ./backend:/app
+    ports:
+      - "8000:8000"
+    depends_on:
+      - mongo
+      - redis
+
+  frontend:
+    build:
+      context: ./flyseats-frontend
+      dockerfile: Dockerfile
+    container_name: sitfly-frontend
+    working_dir: /app
+    command: npm run start:docker
+    volumes:
+      - ./flyseats-frontend:/app
+      - /app/node_modules
+    ports:
+      - "4200:4200"
+    depends_on:
+      - backend
+
+volumes:
+  mongo_data:
+  redis_data:

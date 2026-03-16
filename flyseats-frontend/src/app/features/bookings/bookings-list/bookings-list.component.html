@@ -1,33 +1,94 @@
-<div class="bookings-container">
-  <h1>{{ 'bookings.title' | translate }}</h1>
-  
+<div class="bookings-page">
+  <section class="bookings-header">
+    <div class="title-wrap">
+      <span class="eyebrow">Gestión de reservas</span>
+      <h1>{{ 'bookings.title' | translate }}</h1>
+      <p>Desde aquí puedes revisar tus vuelos reservados y solicitar intercambios de asiento.</p>
+    </div>
+    <div class="stats-chip" *ngIf="!loading">
+      <mat-icon>confirmation_number</mat-icon>
+      <span>{{ bookings.length }} reserva{{ bookings.length === 1 ? '' : 's' }}</span>
+    </div>
+  </section>
+
   <div *ngIf="loading" class="loading-spinner">
     <mat-spinner></mat-spinner>
+    <p>Cargando tus reservas...</p>
   </div>
-  
+
   <div *ngIf="!loading && bookings.length === 0" class="no-bookings">
-    <p>No bookings found</p>
+    <mat-icon>flight_takeoff</mat-icon>
+    <h3>No tienes reservas todavía</h3>
+    <p>Cuando reserves un vuelo, aparecerá aquí con sus acciones de seguimiento.</p>
   </div>
-  
-  <mat-card *ngFor="let booking of bookings" class="booking-card">
-    <mat-card-header>
-      <mat-card-title>{{ 'bookings.bookingNumber' | translate }}: {{ booking.bookingNumber }}</mat-card-title>
-    </mat-card-header>
-    <mat-card-content>
-      <p><strong>Passenger:</strong> {{ booking.passengerName }}</p>
-      <p><strong>Seat:</strong> {{ booking.seatNumber }}</p>
-      <p><strong>{{ 'bookings.status' | translate }}:</strong> 
-        <mat-chip [class.confirmed]="booking.status === 'confirmed'"
-                  [class.pending]="booking.status === 'pending'"
-                  [class.cancelled]="booking.status === 'cancelled'">
-          {{ booking.status }}
-        </mat-chip>
-      </p>
-      <p><strong>Created:</strong> {{ booking.createdAt | date:'medium' }}</p>
-    </mat-card-content>
-    <mat-card-actions>
-      <button mat-button color="primary">{{ 'bookings.viewDetails' | translate }}</button>
-      <button mat-button color="warn" *ngIf="booking.status !== 'cancelled'" (click)="cancelBooking(booking.id)">Cancel</button>
-    </mat-card-actions>
-  </mat-card>
+
+  <div class="bookings-grid" *ngIf="!loading && bookings.length > 0">
+    <mat-card *ngFor="let booking of bookings" class="booking-card">
+      <mat-card-content>
+        <div class="card-top">
+          <div>
+            <span class="booking-code">Reserva {{ getBookingCode(booking) }}</span>
+            <h3>{{ getRoute(booking) }}</h3>
+          </div>
+          <mat-chip class="status-chip"
+                    [class.confirmed]="booking.status === 'confirmed'"
+                    [class.pending]="booking.status === 'pending'"
+                    [class.cancelled]="booking.status === 'cancelled'">
+            {{ getStatusLabel(booking.status) }}
+          </mat-chip>
+        </div>
+
+        <div class="meta-grid">
+          <div class="meta-item">
+            <span class="label">Pasajero</span>
+            <span class="value">{{ getPassengerLabel(booking) }}</span>
+          </div>
+          <div class="meta-item">
+            <span class="label">Vuelo</span>
+            <span class="value">{{ getFlightNumber(booking) }}</span>
+          </div>
+          <div class="meta-item">
+            <span class="label">Asiento</span>
+            <span class="value">{{ getSeatLabel(booking) }}</span>
+          </div>
+          <div class="meta-item">
+            <span class="label">Creada</span>
+            <span class="value">{{ booking.createdAt | date:'mediumDate' }}</span>
+          </div>
+        </div>
+
+        <div class="swap-guide">
+          <mat-icon>swap_horiz</mat-icon>
+          <p *ngIf="hasSeatAssigned(booking)">
+            Ya puedes solicitar swap: pulsa <strong>Solicitar swap</strong> para ver matches en este vuelo.
+          </p>
+          <p *ngIf="!hasSeatAssigned(booking)">
+            Para solicitar swap primero configura tu asiento en <strong>Unirme al vuelo</strong>.
+          </p>
+        </div>
+
+        <div class="actions-row">
+          <button mat-stroked-button
+                  color="primary"
+                  (click)="goToSeatSetup(booking)"
+                  [disabled]="!getFlightId(booking)">
+            <mat-icon>airline_seat_recline_normal</mat-icon>
+            Unirme al vuelo
+          </button>
+
+          <button mat-raised-button
+                  color="primary"
+                  (click)="goToSwapSuggestions(booking)"
+                  [disabled]="!canRequestSwap(booking)">
+            <mat-icon>swap_horiz</mat-icon>
+            Solicitar swap
+          </button>
+
+          <button mat-button color="warn" disabled *ngIf="booking.status !== 'cancelled'">
+            Cancelar (no disponible)
+          </button>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
 </div>

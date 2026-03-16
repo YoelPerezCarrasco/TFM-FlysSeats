@@ -1,21 +1,32 @@
 #!/bin/bash
-# Script para ejecutar el backend localmente
+# Script para ejecutar el backend localmente sin Azure
+
+set -e
+
+if [ -f .env ]; then
+	set -a
+	source .env
+	set +a
+fi
 
 echo "🚀 Iniciando Backend Local de FlysSeats"
 echo ""
 
-# Exportar variables de entorno necesarias
-export COSMOS_ENDPOINT=$(cd ../infrastructure/terraform && terraform output -raw cosmos_endpoint)
-export COSMOS_KEY=$(az cosmosdb keys list --name flyseats2-dev-cosmos --resource-group flyseats2-dev-rg --query "primaryMasterKey" -o tsv)
-export COSMOS_DATABASE="flyseats2-db"
-export AMADEUS_API_KEY="xe17wflazfXimoSkezAd7o9P18zMqGcy"
-export AMADEUS_API_SECRET="6XpUbyPNk1Pfb9dF"
-export REDIS_ENABLED="false"
+# Exportar variables de entorno locales
+export LOCAL_MODE="${LOCAL_MODE:-true}"
+export DB_MODE="${DB_MODE:-mongodb}"
+export PORT="${PORT:-8000}"
+export MONGO_URI="${MONGO_URI:-mongodb://localhost:27017}"
+export MONGO_DATABASE="${MONGO_DATABASE:-sitfly}"
+export REDIS_ENABLED="${REDIS_ENABLED:-false}"
+export REDIS_HOST="${REDIS_HOST:-localhost}"
+export REDIS_PORT="${REDIS_PORT:-6379}"
+export REDIS_SSL="${REDIS_SSL:-false}"
 
 echo "✅ Variables de entorno configuradas"
 echo ""
-echo "📡 Backend corriendo en: http://localhost:5000"
-echo "🔗 Frontend debe apuntar a: http://localhost:5000/api"
+echo "📡 Backend corriendo en: http://localhost:$PORT"
+echo "🔗 Frontend debe apuntar a: http://localhost:$PORT/api"
 echo ""
 echo "Endpoints disponibles:"
 echo "  - GET  /api/health"

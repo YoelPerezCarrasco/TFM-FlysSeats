@@ -14,6 +14,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatChipsModule } from '@angular/material/chips';
 import { TranslateModule } from '@ngx-translate/core';
 import { FlightService } from '../../../core/services/flight.service';
+import { AuthService } from '../../../core/services/auth.service';
 import { Flight, FlightSearchParams } from '../../../core/models';
 
 @Component({
@@ -149,10 +150,36 @@ export class FlightSearchComponent implements OnInit {
   constructor(
     private fb: FormBuilder,
     private flightService: FlightService,
+    private authService: AuthService,
     private router: Router
   ) {
     this.searchForm = this.fb.group({
       destination: ['']
+    });
+  }
+
+  onBookFlight(flight: Flight, event?: Event): void {
+    event?.stopPropagation();
+
+    if (!this.authService.isAuthenticated()) {
+      alert('Debes iniciar sesión para reservar un vuelo');
+      this.router.navigate(['/auth/login']);
+      return;
+    }
+
+    this.flightService.ensureLocalFlightForBooking(flight).subscribe({
+      next: (localFlight) => {
+        this.router.navigate(['/flights', localFlight.id, 'join'], {
+          state: {
+            flight: localFlight,
+            bookingFlow: true
+          }
+        });
+      },
+      error: (error) => {
+        console.error('Error preparando vuelo para reservar:', error);
+        alert('No se pudo preparar el flujo de reserva. Inténtalo de nuevo.');
+      }
     });
   }
 
@@ -261,11 +288,17 @@ export class FlightSearchComponent implements OnInit {
   }
 
   onFlightClick(flight: Flight): void {
-    // Pasar el vuelo completo en el state para evitar llamada al backend
-    // Esto funciona tanto para vuelos de Amadeus como de la BD
-    this.router.navigate(['/flights', flight.id || 'amadeus'], {
+    // Los vuelos de Amadeus (incluyendo IDs mock como MOCK001) no deben
+    // resolverse por ID en backend porque no existen en la BD local.
+    const routeFlightId = this.isAmadeusFlight(flight) ? 'amadeus' : (flight.id || 'amadeus');
+
+    this.router.navigate(['/flights', routeFlightId], {
       state: { flight }
     });
+  }
+
+  private isAmadeusFlight(flight: Flight): boolean {
+    return !!(flight as any)?.itineraries?.length;
   }
 
   onCreateFlight(): void {

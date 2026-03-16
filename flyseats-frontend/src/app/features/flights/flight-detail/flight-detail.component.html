@@ -149,7 +149,7 @@
       </button>
 
       <!-- Booking Button para Amadeus -->
-      <button mat-raised-button color="primary" class="join-button" *ngIf="isAmadeusFlight()">
+      <button mat-raised-button color="primary" class="join-button" *ngIf="isAmadeusFlight()" (click)="onBookFlight()">
         <mat-icon>book_online</mat-icon>
         Reservar Vuelo - {{ getPrice() }}
       </button>

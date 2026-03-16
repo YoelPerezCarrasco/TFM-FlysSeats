@@ -1,19 +1,20 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { tap } from 'rxjs/operators';
+import { tap, map } from 'rxjs/operators';
 import { CacheService } from './cache.service';
 import { environment } from '../../../environments/environment';
+import { AuthService } from './auth.service';
 
 export interface Booking {
   id: string;
   userId: string;
-  flightId: string;
-  bookingNumber: string;
-  passengerName: string;
-  seatNumber: string;
+  flight?: any;
+  bookingNumber?: string;
+  passengerName?: string;
+  seatNumber?: string;
   status: 'confirmed' | 'pending' | 'cancelled';
-  createdAt: Date;
+  createdAt: Date | string;
 }
 
 @Injectable({
@@ -25,10 +26,19 @@ export class BookingService {
 
   constructor(
     private http: HttpClient,
-    private cacheService: CacheService
+    private cacheService: CacheService,
+    private authService: AuthService
   ) { }
 
   getMyBookings(): Observable<Booking[]> {
+    const currentUser = this.authService.getCurrentUser();
+    if (!currentUser?.id) {
+      return new Observable(observer => {
+        observer.next([]);
+        observer.complete();
+      });
+    }
+
     const cached = this.cacheService.get<Booking[]>(this.CACHE_KEY);
     
     if (cached) {
@@ -38,7 +48,8 @@ export class BookingService {
       });
     }
 
-    return this.http.get<Booking[]>(`${this.API_URL}/my`).pipe(
+    return this.http.get<{ bookings: Booking[] }>(`${this.API_URL}/${currentUser.id}`).pipe(
+      map((response) => response.bookings || []),
       tap(bookings => this.cacheService.set(this.CACHE_KEY, bookings))
     );
   }
@@ -47,8 +58,16 @@ export class BookingService {
     return this.http.get<Booking>(`${this.API_URL}/${id}`);
   }
 
-  createBooking(flightId: string, passengerData: any): Observable<Booking> {
-    return this.http.post<Booking>(this.API_URL, { flightId, ...passengerData }).pipe(
+  createBooking(flight: any): Observable<{ message: string; bookingId: string }> {
+    const currentUser = this.authService.getCurrentUser();
+    if (!currentUser?.id) {
+      throw new Error('Usuario no autenticado');
+    }
+
+    return this.http.post<{ message: string; bookingId: string }>(this.API_URL, {
+      userId: currentUser.id,
+      flight
+    }).pipe(
       tap(() => this.cacheService.remove(this.CACHE_KEY))
     );
   }

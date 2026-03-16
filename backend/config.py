@@ -1,8 +1,9 @@
 """
-Configuración centralizada para Azure Functions Backend
+Configuración centralizada del backend.
 """
 import os
-from azure.identity import DefaultAzureCredential, ManagedIdentityCredential
+
+from azure.identity import ManagedIdentityCredential
 from azure.keyvault.secrets import SecretClient
 
 class Config:
@@ -10,17 +11,27 @@ class Config:
     
     # Environment
     ENVIRONMENT = os.getenv('ENVIRONMENT', 'dev')
+    LOCAL_MODE = os.getenv('LOCAL_MODE', '').lower() == 'true' or (
+        ENVIRONMENT != 'prod' and not os.getenv('COSMOS_ENDPOINT')
+    )
+    DB_MODE = os.getenv('DB_MODE', 'mongodb' if LOCAL_MODE else 'azure-cosmos')
     
     # Azure Cosmos DB
     COSMOS_ENDPOINT = os.getenv('COSMOS_ENDPOINT')
     COSMOS_KEY = os.getenv('COSMOS_KEY')
     COSMOS_DATABASE = os.getenv('COSMOS_DATABASE', 'flyseats-db')
+
+    # MongoDB local / contenedores
+    MONGO_URI = os.getenv('MONGO_URI', 'mongodb://localhost:27017')
+    MONGO_DATABASE = os.getenv('MONGO_DATABASE', 'sitfly')
+    MONGO_EMULATOR = os.getenv('MONGO_EMULATOR', 'true' if LOCAL_MODE else 'false').lower() == 'true'
+    MONGO_EMULATOR_PATH = os.getenv('MONGO_EMULATOR_PATH', './data/mongita')
     
     # Azure Redis Cache
     REDIS_HOST = os.getenv('REDIS_HOST')
-    REDIS_PORT = int(os.getenv('REDIS_PORT', 6380))
+    REDIS_PORT = int(os.getenv('REDIS_PORT', 6379 if LOCAL_MODE else 6380))
     REDIS_PASSWORD = os.getenv('REDIS_PASSWORD')
-    REDIS_SSL = True
+    REDIS_SSL = os.getenv('REDIS_SSL', 'false' if LOCAL_MODE else 'true').lower() == 'true'
     
     # Azure Storage
     STORAGE_CONNECTION_STRING = os.getenv('STORAGE_CONNECTION_STRING')
@@ -58,6 +69,9 @@ class Config:
         Returns:
             Valor del secreto
         """
+        if cls.LOCAL_MODE or not cls.KEY_VAULT_URL:
+            return os.getenv(secret_name.upper().replace('-', '_'))
+
         try:
             # En Azure, usa Managed Identity
             credential = ManagedIdentityCredential()
@@ -72,6 +86,10 @@ class Config:
     @classmethod
     def validate_config(cls):
         """Valida que todas las configuraciones necesarias estén presentes"""
+        if cls.LOCAL_MODE:
+            print("ℹ️  Modo local activo: Azure Cosmos DB no requerido")
+            return True
+
         # Redis es opcional (para TFM puede estar deshabilitado)
         redis_enabled = os.getenv('REDIS_ENABLED', 'false').lower() == 'true'
         

@@ -84,7 +84,7 @@ resource "azurerm_key_vault_secret" "amadeus_api_secret" {
 }
 
 # ============================================
-# COSMOS DB (FREE TIER)
+# COSMOS DB (SERVERLESS - Pago por uso ~0€)
 # ============================================
 resource "azurerm_cosmosdb_account" "main" {
   name                = "${var.project_name}-${var.environment}-cosmos"
@@ -93,7 +93,10 @@ resource "azurerm_cosmosdb_account" "main" {
   offer_type          = "Standard"
   kind                = "GlobalDocumentDB"
 
-  enable_free_tier = var.cosmos_free_tier
+  # Serverless: solo paga por RU consumidas (ideal para TFM)
+  capabilities {
+    name = "EnableServerless"
+  }
 
   consistency_policy {
     consistency_level = "Session"
@@ -140,6 +143,22 @@ resource "azurerm_cosmosdb_sql_container" "flights_cache" {
   partition_key_path  = "/searchKey"
   
   default_ttl = 3600  # 1 hora de cache
+}
+
+resource "azurerm_cosmosdb_sql_container" "seats" {
+  name                = "seats"
+  resource_group_name = azurerm_cosmosdb_account.main.resource_group_name
+  account_name        = azurerm_cosmosdb_account.main.name
+  database_name       = azurerm_cosmosdb_sql_database.main.name
+  partition_key_path  = "/flight_id"
+}
+
+resource "azurerm_cosmosdb_sql_container" "swaps" {
+  name                = "swaps"
+  resource_group_name = azurerm_cosmosdb_account.main.resource_group_name
+  account_name        = azurerm_cosmosdb_account.main.name
+  database_name       = azurerm_cosmosdb_sql_database.main.name
+  partition_key_path  = "/flight_id"
 }
 
 # ============================================

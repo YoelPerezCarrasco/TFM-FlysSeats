@@ -11,6 +11,8 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { TranslateModule } from '@ngx-translate/core';
 import { FlightService } from '../../../core/services/flight.service';
 import { SeatService } from '../../../core/services/seat.service';
+import { BookingService } from '../../../core/services/booking.service';
+import { AuthService } from '../../../core/services/auth.service';
 import { Flight, Seat } from '../../../core/models';
 
 @Component({
@@ -39,7 +41,9 @@ export class FlightDetailComponent implements OnInit {
     private route: ActivatedRoute,
     private router: Router,
     private flightService: FlightService,
-    private seatService: SeatService
+    private seatService: SeatService,
+    private bookingService: BookingService,
+    private authService: AuthService
   ) {}
 
   ngOnInit(): void {
@@ -58,11 +62,17 @@ export class FlightDetailComponent implements OnInit {
     } else {
       // Fallback: cargar desde backend (solo para vuelos de BD)
       const flightId = this.route.snapshot.paramMap.get('id');
-      if (flightId && flightId !== 'amadeus') {
+      if (flightId && flightId !== 'amadeus' && !this.isMockAmadeusId(flightId)) {
         this.loadFlight(flightId);
         this.loadSeats(flightId);
+      } else {
+        this.loading = false;
       }
     }
+  }
+
+  private isMockAmadeusId(flightId: string): boolean {
+    return /^mock/i.test(flightId);
   }
 
   loadFlight(flightId: string): void {
@@ -251,5 +261,50 @@ export class FlightDetailComponent implements OnInit {
 
   isAmadeusFlight(): boolean {
     return !!this.flight?.itineraries;
+  }
+
+  onBookFlight(): void {
+    if (!this.flight) {
+      return;
+    }
+
+    if (!this.authService.isAuthenticated()) {
+      alert('Debes iniciar sesión para reservar un vuelo');
+      this.router.navigate(['/auth/login']);
+      return;
+    }
+
+    const segments = this.flight.itineraries?.[0]?.segments || [];
+    const firstSegment = segments[0];
+    const lastSegment = segments[segments.length - 1];
+    const normalizedFlightId = this.flight.id && !/^mock/i.test(this.flight.id) ? this.flight.id : undefined;
+
+    const bookingFlight = {
+      id: normalizedFlightId,
+      flight_number: firstSegment ? `${firstSegment.carrierCode}${firstSegment.number}` : this.flight.flight_number,
+      departure_code: firstSegment?.departure?.iataCode || this.flight.departure?.airport_code,
+      arrival_code: lastSegment?.arrival?.iataCode || this.flight.arrival?.airport_code,
+      departure_date: firstSegment?.departure?.at
+        ? new Date(firstSegment.departure.at).toISOString().split('T')[0]
+        : this.flight.departure?.date,
+      departure_time: firstSegment?.departure?.at
+        ? new Date(firstSegment.departure.at).toISOString()
+        : this.flight.departure?.time,
+      arrival_time: lastSegment?.arrival?.at
+        ? new Date(lastSegment.arrival.at).toISOString()
+        : this.flight.arrival?.time,
+      price: this.flight.price?.total
+    };
+
+    this.bookingService.createBooking(bookingFlight).subscribe({
+      next: () => {
+        alert('Reserva creada correctamente');
+        this.router.navigate(['/bookings']);
+      },
+      error: (error) => {
+        console.error('Error creando reserva:', error);
+        alert('No se pudo crear la reserva. Revisa la consola o inténtalo de nuevo.');
+      }
+    });
   }
 }

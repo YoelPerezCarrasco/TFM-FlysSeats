@@ -51,9 +51,9 @@ variable "enable_redis" {
 }
 
 variable "cosmos_free_tier" {
-  description = "Use Cosmos DB free tier (400 RU/s free forever)"
+  description = "Deprecated - now using Serverless mode"
   type        = bool
-  default     = true  # Free tier for TFM
+  default     = false
 }
 
 variable "amadeus_api_key" {

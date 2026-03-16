@@ -16,6 +16,8 @@ sys.path.insert(0, os.path.dirname(__file__))
 
 # Importar módulos locales
 from utils.cosmos_client import CosmosDBClient
+from utils.local_db_client import LocalDBClient
+from utils.mongodb_client import MongoDBClient
 from utils.amadeus_client import AmadeusClient
 from utils.matching_engine import find_swap_suggestions, calculate_match_score
 from config import Config
@@ -28,15 +30,34 @@ logger = logging.getLogger(__name__)
 app = Flask(__name__)
 CORS(app)  # Habilitar CORS para todas las rutas
 
+db_mode = Config.DB_MODE
+
 # Inicializar clientes
 try:
-    cosmos_client = CosmosDBClient()
+    if Config.DB_MODE == 'mongodb':
+        cosmos_client = MongoDBClient()
+        db_mode = 'mongodb'
+    elif Config.DB_MODE == 'local-json':
+        cosmos_client = LocalDBClient()
+        db_mode = 'local-json'
+    else:
+        cosmos_client = CosmosDBClient()
+        db_mode = 'azure-cosmos'
+
     amadeus_client = AmadeusClient()
-    logger.info("✅ Clientes inicializados correctamente")
+    logger.info(
+        f"✅ Clientes inicializados correctamente (db_mode={db_mode})"
+    )
 except Exception as e:
-    logger.error(f"❌ Error inicializando clientes: {str(e)}")
-    cosmos_client = None
-    amadeus_client = None
+    if Config.LOCAL_MODE and Config.DB_MODE == 'mongodb':
+        logger.warning(f"⚠️ MongoDB no disponible. Fallback a LocalDBClient: {str(e)}")
+        cosmos_client = LocalDBClient()
+        amadeus_client = AmadeusClient()
+        db_mode = 'local-json'
+    else:
+        logger.error(f"❌ Error inicializando clientes: {str(e)}")
+        cosmos_client = None
+        amadeus_client = None
 
 # ============================================
 # RUTAS - HEALTH CHECK
@@ -50,6 +71,7 @@ def health_check():
         'status': 'healthy',
         'service': 'FlysSeats API',
         'version': '1.0.0',
+        'db_mode': db_mode,
         'cosmos_db': 'connected' if cosmos_client else 'disconnected',
         'amadeus_api': 'connected' if amadeus_client else 'disconnected'
     }), 200

@@ -2,25 +2,108 @@
   <mat-card *ngIf="flight">
     <mat-card-header>
       <mat-icon mat-card-avatar>airline_seat_recline_normal</mat-icon>
-      <mat-card-title>Join Flight {{ flight.flight_number }}</mat-card-title>
+      <mat-card-title>{{ bookingFlow ? 'Confirma tu reserva' : 'Join Flight' }} {{ flight.flight_number }}</mat-card-title>
       <mat-card-subtitle>
-        {{ flight.departure?.city }} → {{ flight.arrival?.city }}
+        {{ getDepartureDisplay() }} → {{ getArrivalDisplay() }}
       </mat-card-subtitle>
     </mat-card-header>
     
     <mat-card-content>
       <form [formGroup]="joinForm" (ngSubmit)="onSubmit()">
-        
-        <!-- Seat Selection -->
-        <h3>Your Current Seat</h3>
-        <mat-form-field appearance="outline" class="full-width">
-          <mat-label>Seat Number</mat-label>
-          <input matInput formControlName="seat_number" placeholder="12A" required>
-          <mat-hint>Format: Row + Letter (e.g., 12A, 3F)</mat-hint>
-          <mat-error *ngIf="joinForm.get('seat_number')?.hasError('pattern')">
-            Invalid seat format. Use format like 12A or 3F
-          </mat-error>
-        </mat-form-field>
+
+        <h3>{{ bookingFlow ? 'Elige tu asiento para reservar' : 'Selecciona tu asiento' }}</h3>
+
+        <div class="seat-selection-summary">
+          <div class="summary-item">
+            <span class="label">Asiento seleccionado</span>
+            <span class="value">{{ getSelectedSeatLabel() }}</span>
+          </div>
+          <div class="seat-legend">
+            <span class="legend-item"><span class="dot available"></span>Libre</span>
+            <span class="legend-item"><span class="dot occupied"></span>Ocupado</span>
+            <span class="legend-item"><span class="dot selected"></span>Seleccionado</span>
+          </div>
+        </div>
+
+        <div class="seat-map-loading" *ngIf="seatsLoading">
+          <mat-spinner diameter="30"></mat-spinner>
+          <span>Cargando cabina...</span>
+        </div>
+
+        <div class="aircraft-map" *ngIf="!seatsLoading">
+          <div class="aircraft-nose"></div>
+
+          <div class="aircraft-body">
+            <div class="aircraft-wing wing-left"></div>
+            <div class="aircraft-wing wing-right"></div>
+
+            <div class="seat-columns">
+              <span class="row-col-placeholder"></span>
+              <span>A</span>
+              <span>B</span>
+              <span>C</span>
+              <span class="aisle-label">PASILLO</span>
+              <span>D</span>
+              <span>E</span>
+              <span>F</span>
+              <span class="row-col-placeholder"></span>
+            </div>
+
+            <div class="seat-row"
+                 *ngFor="let rowSeats of cabinRows; trackBy: trackRow"
+                 [class.emergency-row]="rowSeats[0].isEmergencyExit">
+              <span class="row-label">{{ rowSeats[0].row }}</span>
+
+              <button type="button"
+                      class="seat-btn"
+                      *ngFor="let seat of rowSeats.slice(0, 3); trackBy: trackSeat"
+                      [class.occupied]="seat.occupied"
+                      [class.selected]="isSeatSelected(seat)"
+                      [class.window-seat]="seat.type === 'WINDOW'"
+                      [class.aisle-seat]="seat.type === 'AISLE'"
+                      [attr.aria-label]="seat.seatNumber + ' - ' + (seat.occupied ? 'ocupado' : 'disponible')"
+                      [disabled]="seat.occupied || loading"
+                      (click)="selectSeat(seat)">
+                <span class="seat-shape" aria-hidden="true">
+                  <span class="seat-back"></span>
+                  <span class="seat-base"></span>
+                  <span class="seat-leg seat-leg-left"></span>
+                  <span class="seat-leg seat-leg-right"></span>
+                  <span class="seat-letter">{{ seat.column }}</span>
+                </span>
+              </button>
+
+              <div class="aisle" [class.exit]="rowSeats[0].isEmergencyExit">
+                <span *ngIf="rowSeats[0].isEmergencyExit">EXIT</span>
+              </div>
+
+              <button type="button"
+                      class="seat-btn"
+                      *ngFor="let seat of rowSeats.slice(3); trackBy: trackSeat"
+                      [class.occupied]="seat.occupied"
+                      [class.selected]="isSeatSelected(seat)"
+                      [class.window-seat]="seat.type === 'WINDOW'"
+                      [class.aisle-seat]="seat.type === 'AISLE'"
+                      [attr.aria-label]="seat.seatNumber + ' - ' + (seat.occupied ? 'ocupado' : 'disponible')"
+                      [disabled]="seat.occupied || loading"
+                      (click)="selectSeat(seat)">
+                <span class="seat-shape" aria-hidden="true">
+                  <span class="seat-back"></span>
+                  <span class="seat-base"></span>
+                  <span class="seat-leg seat-leg-left"></span>
+                  <span class="seat-leg seat-leg-right"></span>
+                  <span class="seat-letter">{{ seat.column }}</span>
+                </span>
+              </button>
+
+              <span class="row-label">{{ rowSeats[0].row }}</span>
+            </div>
+          </div>
+
+          <div class="aircraft-tail"></div>
+        </div>
+
+        <input type="hidden" formControlName="seat_number" />
 
         <!-- Seat Features -->
         <h3>Seat Features</h3>
@@ -115,7 +198,7 @@
           </button>
           <button mat-raised-button color="primary" type="submit" [disabled]="!joinForm.valid || loading">
             <mat-spinner *ngIf="loading" diameter="20"></mat-spinner>
-            <span *ngIf="!loading">Join Flight</span>
+            <span *ngIf="!loading">{{ bookingFlow ? 'Confirmar reserva' : 'Join Flight' }}</span>
           </button>
         </div>
       </form>

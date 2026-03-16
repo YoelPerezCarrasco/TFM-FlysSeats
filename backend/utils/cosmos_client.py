@@ -499,6 +499,3 @@ class CosmosDBClient:
             logger.error(f"Error cacheando vuelos: {e}")
             raise
 
-
-# Instancia global del cliente
-cosmos_db = CosmosDBClient()

@@ -301,7 +301,7 @@
 
                   <!-- Botón de acción -->
                   <div class="detail-actions">
-                    <button mat-raised-button color="primary" class="book-btn">
+                    <button mat-raised-button color="primary" class="book-btn" (click)="onBookFlight(flight, $event)">
                       <mat-icon>book_online</mat-icon>
                       Reservar por {{ flight.price?.total }}€
                     </button>

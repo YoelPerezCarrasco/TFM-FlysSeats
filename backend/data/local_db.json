@@ -1,0 +1,230 @@
+{
+  "users": [
+    {
+      "id": "user_83af6ead32",
+      "type": "user",
+      "email": "local1@test.com",
+      "password": "1234",
+      "name": "Local One",
+      "reputation": {
+        "rating": 5.0,
+        "total_swaps": 0,
+        "completed_swaps": 0
+      },
+      "created_at": "2026-03-15T18:46:47.523996",
+      "updated_at": "2026-03-15T18:46:47.524025"
+    },
+    {
+      "id": "user_7d8c7dfc48",
+      "type": "user",
+      "email": "local2@test.com",
+      "password": "1234",
+      "name": "Local Two",
+      "reputation": {
+        "rating": 5.0,
+        "total_swaps": 0,
+        "completed_swaps": 0
+      },
+      "created_at": "2026-03-15T18:46:47.535753",
+      "updated_at": "2026-03-15T18:46:47.535761"
+    },
+    {
+      "id": "user_97abbab564",
+      "type": "user",
+      "email": "smoke1@test.com",
+      "password": "1234",
+      "name": "Smoke1",
+      "reputation": {
+        "rating": 5.0,
+        "total_swaps": 0,
+        "completed_swaps": 0
+      },
+      "created_at": "2026-03-15T18:47:00.418011",
+      "updated_at": "2026-03-15T18:47:00.418017"
+    },
+    {
+      "id": "user_1221fe4e3a",
+      "type": "user",
+      "email": "smoke2@test.com",
+      "password": "1234",
+      "name": "Smoke2",
+      "reputation": {
+        "rating": 5.0,
+        "total_swaps": 0,
+        "completed_swaps": 0
+      },
+      "created_at": "2026-03-15T18:47:00.419985",
+      "updated_at": "2026-03-15T18:47:00.419990"
+    }
+  ],
+  "flights": [
+    {
+      "id": "flight_76ef6b6439",
+      "type": "flight",
+      "flight_number": "IB1234",
+      "departure_code": "BCN",
+      "arrival_code": "MAD",
+      "departure_time": "2026-03-16T10:00:00Z",
+      "arrival_time": "2026-03-16T11:30:00Z",
+      "created_at": "2026-03-15T18:46:47.613888",
+      "updated_at": "2026-03-15T18:46:47.613888"
+    },
+    {
+      "id": "flight_67d182d470",
+      "type": "flight",
+      "flight_number": "SMK100",
+      "departure_code": "BCN",
+      "arrival_code": "MAD",
+      "departure_time": "2026-03-20T10:00:00Z",
+      "arrival_time": "2026-03-20T11:10:00Z",
+      "created_at": "2026-03-15T18:47:00.422051",
+      "updated_at": "2026-03-15T18:47:00.422051"
+    }
+  ],
+  "bookings": [],
+  "seats": [
+    {
+      "id": "seat_flight_76ef6b6439_12A",
+      "type": "seat",
+      "flight_id": "flight_76ef6b6439",
+      "user_id": "user_83af6ead32",
+      "seat_number": "12A",
+      "seat_details": {
+        "type": "WINDOW",
+        "section": "MIDDLE",
+        "row": 12,
+        "column": "A",
+        "is_emergency_exit": true,
+        "is_reclinable": true,
+        "extra_legroom": true
+      },
+      "preferences": {
+        "seat_type": "AISLE",
+        "importance": "high"
+      },
+      "open_to_swap": true,
+      "created_at": "2026-03-15T18:46:47.660296",
+      "updated_at": "2026-03-15T18:46:47.660307"
+    },
+    {
+      "id": "seat_flight_76ef6b6439_12C",
+      "type": "seat",
+      "flight_id": "flight_76ef6b6439",
+      "user_id": "user_7d8c7dfc48",
+      "seat_number": "12C",
+      "seat_details": {
+        "type": "AISLE",
+        "section": "MIDDLE",
+        "row": 12,
+        "column": "C",
+        "is_emergency_exit": true,
+        "is_reclinable": true,
+        "extra_legroom": true
+      },
+      "preferences": {
+        "seat_type": "WINDOW",
+        "importance": "high"
+      },
+      "open_to_swap": true,
+      "created_at": "2026-03-15T18:46:47.677661",
+      "updated_at": "2026-03-15T18:46:47.677672"
+    },
+    {
+      "id": "seat_flight_67d182d470_14A",
+      "type": "seat",
+      "flight_id": "flight_67d182d470",
+      "user_id": "user_97abbab564",
+      "seat_number": "14A",
+      "seat_details": {
+        "type": "WINDOW",
+        "section": "MIDDLE",
+        "row": 14,
+        "column": "A",
+        "is_emergency_exit": false,
+        "is_reclinable": true,
+        "extra_legroom": false
+      },
+      "preferences": {
+        "seat_type": "AISLE",
+        "importance": "high"
+      },
+      "open_to_swap": true,
+      "created_at": "2026-03-15T18:47:00.424237",
+      "updated_at": "2026-03-15T18:47:00.424242"
+    },
+    {
+      "id": "seat_flight_67d182d470_14C",
+      "type": "seat",
+      "flight_id": "flight_67d182d470",
+      "user_id": "user_1221fe4e3a",
+      "seat_number": "14C",
+      "seat_details": {
+        "type": "AISLE",
+        "section": "MIDDLE",
+        "row": 14,
+        "column": "C",
+        "is_emergency_exit": false,
+        "is_reclinable": true,
+        "extra_legroom": false
+      },
+      "preferences": {
+        "seat_type": "WINDOW",
+        "importance": "high"
+      },
+      "open_to_swap": true,
+      "created_at": "2026-03-15T18:47:00.426498",
+      "updated_at": "2026-03-15T18:47:00.426503"
+    }
+  ],
+  "swaps": [
+    {
+      "id": "swap_flight_76ef6b6439_12A_12C_20260315184647",
+      "type": "swap_request",
+      "flight_id": "flight_76ef6b6439",
+      "requester": {
+        "user_id": "user_83af6ead32",
+        "current_seat": "12A",
+        "seat_id": "seat_flight_76ef6b6439_12A"
+      },
+      "partner": {
+        "user_id": "user_7d8c7dfc48",
+        "current_seat": "12C",
+        "seat_id": "seat_flight_76ef6b6439_12C"
+      },
+      "match_score": 45.0,
+      "status": "pending",
+      "created_by": "user_83af6ead32",
+      "messages_count": 0,
+      "requester_confirmed": false,
+      "partner_confirmed": false,
+      "expires_at": "2026-03-17T18:46:47.744500",
+      "created_at": "2026-03-15T18:46:47.744508",
+      "updated_at": "2026-03-15T18:46:47.744509"
+    },
+    {
+      "id": "swap_flight_67d182d470_14A_14C_20260315184700",
+      "type": "swap_request",
+      "flight_id": "flight_67d182d470",
+      "requester": {
+        "user_id": "user_97abbab564",
+        "current_seat": "14A",
+        "seat_id": "seat_flight_67d182d470_14A"
+      },
+      "partner": {
+        "user_id": "user_1221fe4e3a",
+        "current_seat": "14C",
+        "seat_id": "seat_flight_67d182d470_14C"
+      },
+      "match_score": 45.0,
+      "status": "pending",
+      "created_by": "user_97abbab564",
+      "messages_count": 0,
+      "requester_confirmed": false,
+      "partner_confirmed": false,
+      "expires_at": "2026-03-17T18:47:00.429628",
+      "created_at": "2026-03-15T18:47:00.429635",
+      "updated_at": "2026-03-15T18:47:00.429637"
+    }
+  ],
+  "flights-cache": []
+}

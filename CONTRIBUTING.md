@@ -15,7 +15,7 @@ Thank you for your interest in contributing to FlysSeats! This document provides
 - Node.js 18+
 - Python 3.9+
 - Git
-- Azure CLI (for deployment testing)
+- Docker + Docker Compose
 
 ### Setup Development Environment
 
@@ -72,10 +72,9 @@ Thank you for your interest in contributing to FlysSeats! This document provides
 
 ### Backend Development
 
-1. **Start Azure Functions**
+1. **Start Flask backend**
    ```bash
-   cd backend
-   func start
+   make dev-backend
    ```
 
 2. **Code Style**
@@ -84,8 +83,8 @@ Thank you for your interest in contributing to FlysSeats! This document provides
    - Write docstrings
    - Handle errors gracefully
 
-3. **Function Guidelines**
-   - Keep functions focused
+3. **API Guidelines**
+   - Keep endpoints focused
    - Return proper HTTP status codes
    - Log appropriately
    - Validate input
@@ -221,10 +220,9 @@ flyseats-frontend/
 └── cypress/                # E2E tests
 
 backend/
-└── functions/              # Azure Functions
-    ├── auth/
-    ├── flights/
-    └── bookings/
+├── app.py                  # Flask API
+├── utils/                  # DB/API clients
+└── data/                   # Local seed data
 ```
 
 ## Adding New Features
@@ -239,20 +237,17 @@ backend/
 6. Write tests
 7. Update documentation
 
-### Backend Function
+### Backend API change
 
-1. Create function directory in `backend/functions/`
-2. Add `__init__.py` with handler
-3. Add `function.json` with bindings
-4. Implement business logic
-5. Add error handling
-6. Update API documentation
+1. Add/modify route in `backend/app.py`
+2. Implement business logic in `backend/utils/` if needed
+3. Add error handling and input validation
+4. Update API documentation
 
 ## Documentation
 
 - Update README.md for major changes
 - Update ARCHITECTURE.md for architectural changes
-- Update DEPLOYMENT.md for deployment changes
 - Add JSDoc/docstrings to new code
 - Keep comments up to date
 

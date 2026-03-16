@@ -1,9 +1,10 @@
 name: API Health Check
 
 on:
-  schedule:
-    - cron: '0 */6 * * *'  # Cada 6 horas
   workflow_dispatch:  # Manual trigger
+
+env:
+  HEALTH_URL: ${{ secrets.HEALTH_CHECK_URL }}
 
 jobs:
   health-check:
@@ -12,11 +13,14 @@ jobs:
     steps:
       - name: Check Backend API
         run: |
-          echo "🔍 Checking FlysSeats Backend API..."
-          
-          HEALTH_URL="https://flyseats2-dev-api.azurewebsites.net/api/health"
-          
-          if curl -f -s -o /dev/null -w "%{http_code}" $HEALTH_URL | grep -q "200"; then
+          if [ -z "$HEALTH_URL" ]; then
+            echo "ℹ️ HEALTH_CHECK_URL no configurada. Saltando health check remoto."
+            exit 0
+          fi
+
+          echo "🔍 Checking Backend API: $HEALTH_URL"
+
+          if curl -f -s -o /dev/null -w "%{http_code}" "$HEALTH_URL" | grep -q "200"; then
             echo "✅ API is healthy"
           else
             echo "❌ API health check failed"
@@ -25,9 +29,15 @@ jobs:
       
       - name: Test Login Endpoint
         run: |
+          if [ -z "$HEALTH_URL" ]; then
+            echo "ℹ️ HEALTH_CHECK_URL no configurada. Saltando login check remoto."
+            exit 0
+          fi
+
           echo "🔐 Testing login endpoint..."
+          BASE_URL="${HEALTH_URL%/api/health}"
           
-          curl -X POST https://flyseats2-dev-api.azurewebsites.net/api/auth/login \
+          curl -X POST "$BASE_URL/api/auth/login" \
             -H "Content-Type: application/json" \
             -d '{"email": "test@flyseats.com", "password": "test123"}' \
             -f -s | grep -q "message" && echo "✅ Login endpoint working"

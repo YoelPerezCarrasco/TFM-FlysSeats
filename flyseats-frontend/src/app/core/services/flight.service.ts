@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, of } from 'rxjs';
-import { tap, catchError, map } from 'rxjs/operators';
+import { tap, catchError, map, switchMap } from 'rxjs/operators';
 import { CacheService } from './cache.service';
 import { environment } from '../../../environments/environment';
 import { 
@@ -64,6 +64,10 @@ export class FlightService {
    * Get flight by ID
    */
   getFlightById(id: string): Observable<Flight | null> {
+    if (!id || id === 'amadeus' || /^mock/i.test(id)) {
+      return of(null);
+    }
+
     return this.http.get<Flight>(`${this.API_URL}/${id}`).pipe(
       catchError(error => {
         console.error('Error getting flight:', error);
@@ -115,6 +119,66 @@ export class FlightService {
       catchError(error => {
         console.error('Error deleting flight:', error);
         return of(false);
+      })
+    );
+  }
+
+  /**
+   * Ensure a flight from search exists in local DB so user can join seats and request swaps.
+   */
+  ensureLocalFlightForBooking(flight: Flight): Observable<Flight> {
+    const currentId = flight.id;
+    if (currentId && currentId !== 'amadeus' && !/^mock/i.test(currentId)) {
+      return of(flight);
+    }
+
+    const firstSegment = flight.itineraries?.[0]?.segments?.[0];
+    const lastSegment = flight.itineraries?.[0]?.segments?.[flight.itineraries?.[0]?.segments?.length - 1];
+
+    const flightNumber = firstSegment
+      ? `${firstSegment.carrierCode}${firstSegment.number}`
+      : (flight.flight_number || 'EXT000');
+    const departureCode = firstSegment?.departure?.iataCode || flight.departure?.airport_code || 'UNK';
+    const arrivalCode = lastSegment?.arrival?.iataCode || flight.arrival?.airport_code || 'UNK';
+    const departureIso = firstSegment?.departure?.at || new Date().toISOString();
+    const arrivalIso = lastSegment?.arrival?.at || departureIso;
+
+    const dateKey = departureIso.split('T')[0].replace(/-/g, '');
+    const localFlightId = `ext_${flightNumber}_${departureCode}${arrivalCode}_${dateKey}`.toLowerCase();
+
+    const createPayload = {
+      id: localFlightId,
+      flight_number: flightNumber,
+      departure_code: departureCode,
+      arrival_code: arrivalCode,
+      departure_time: departureIso,
+      arrival_time: arrivalIso
+    };
+
+    return this.getFlightById(localFlightId).pipe(
+      switchMap(existing => {
+        if (existing) {
+          return of({ ...flight, id: localFlightId, flight_number: flightNumber } as Flight);
+        }
+
+        return this.http.post<{ message: string; flight_id: string }>(this.API_URL, createPayload).pipe(
+          map(response => {
+            return {
+              ...flight,
+              id: response.flight_id || localFlightId,
+              flight_number: flightNumber
+            } as Flight;
+          }),
+          catchError(() => {
+            return this.getFlightById(localFlightId).pipe(
+              map(recovered => ({
+                ...(recovered || flight),
+                id: localFlightId,
+                flight_number: flightNumber
+              } as Flight))
+            );
+          })
+        );
       })
     );
   }
